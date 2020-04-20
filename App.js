@@ -5,7 +5,8 @@
  * @format
  * @flow strict-local
  */
-
+import { getDistance, getPreciseDistance } from 'geolib';
+import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
 import {
   SafeAreaView,
   StyleSheet,
@@ -22,38 +23,32 @@ import {
   DebugInstructions,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
-import Geolocation from 'react-native-geolocation-service';
 import React, { Component } from 'react'
 import { PermissionsAndroid } from 'react-native';
-import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
+
 export default class App extends Component {
 
-  // async componentDidMount () {
-  //   const granted = await PermissionsAndroid.request(
-  //     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-  //     )
-  //     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-  //       console.log("You can use the location")
-  //       this.getLocation()
-  //     } else {
-  //       console.log("location permission denied")
-  //       alert("Location permission denied");
-  //     }
+  updateLocation = (location) => {
+    let distance = getDistance(
+      { latitude: location.latitude, longitude: location.longitude },
+      { latitude: 21.027763, longitude: 105.834160 },
+    );
+    console.log("distance")
+    console.log(distance)
+    if (distance < 500) {
+      let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
+        location.latitude +
+        '&long=' +
+        location.longitude;
+      fetch(url).then(data => {
+        console.log("respone")
+        console.log(data)
+      })
+        .catch(err => {
 
-  // }
-  // getLocation(){
-  //   Geolocation.watchPosition(
-  //     (position) => {
-  //       console.log("position");
-  //       console.log(position);
-  //     },
-  //     (error) => {
-  //       // See error code charts below.
-  //       console.log(error.code, error.message);
-  //     },
-  //     { enableHighAccuracy: true, timeout: 15000, interval: 1000 }
-  //   );
-  // }
+        })
+    }
+  }
   componentDidMount() {
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
@@ -62,10 +57,11 @@ export default class App extends Component {
       notificationTitle: 'Background tracking',
       notificationText: 'enabled',
       debug: true,
-      startOnBoot: false,
+      startOnBoot: true,
       stopOnTerminate: false,
+      startForeground: true,
       locationProvider: BackgroundGeolocation.ACTIVITY_PROVIDER,
-      interval: 5000,
+      interval: 10000,
       fastestInterval: 5000,
       activitiesInterval: 10000,
       stopOnStillActivity: false,
@@ -82,19 +78,7 @@ export default class App extends Component {
     });
 
     BackgroundGeolocation.on('location', (location) => {
-      console.log("location")
-      console.log(location)
-      let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
-        location.latitude +
-        '&long=' +
-        location.longitude;
-      fetch(url).then(data => {
-        console.log("data")
-        console.log(data)
-      })
-        .catch(err => {
-
-        })
+      this.updateLocation(location)
       // handle your locations here
       // to perform long running operation on iOS
       // you need to create background task
@@ -138,22 +122,24 @@ export default class App extends Component {
 
     BackgroundGeolocation.on('background', () => {
       console.log('[INFO] App is in background');
-      BackgroundGeolocation.getLocations((locations) => {
-        let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
-          locations[0].latitude +
-          '&long=' +
-          locations[0].longitude;
-        fetch(url).then(data => {
-          console.log("data")
-          console.log(data)
-        })
-          .catch(err => {
 
-          })
+      BackgroundGeolocation.getLocations((locations) => {
+        this.updateLocation(locations[0])
       }
       );
     });
 
+    BackgroundGeolocation.headlessTask(async (event) => {
+      if (event.name === 'location' ||
+        event.name === 'stationary') {
+        console.log("---------------------")
+        console.log(event)
+        BackgroundGeolocation.getLocations((locations) => {
+          this.updateLocation(locations[0])
+        }
+        );
+      }
+    });
     BackgroundGeolocation.on('foreground', () => {
       console.log('[INFO] App is in foreground');
     });
@@ -187,6 +173,8 @@ export default class App extends Component {
   componentWillUnmount() {
     // unregister all event listeners
     BackgroundGeolocation.removeAllListeners();
+
+
   }
   render() {
     return (

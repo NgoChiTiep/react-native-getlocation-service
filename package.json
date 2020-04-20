@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@mauron85/react-native-background-geolocation": "^0.6.3",
+    "geolib": "^3.2.1",
     "react": "16.11.0",
     "react-native": "0.62.2",
     "react-native-geolocation-service": "^4.0.0"
