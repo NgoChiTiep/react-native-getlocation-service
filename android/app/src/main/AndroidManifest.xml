@@ -13,7 +13,7 @@
       android:theme="@style/AppTheme">
       <meta-data
 android:name="com.google.android.geo.API_KEY"
-android:value="AIzaSyBuUbr2XwDM9nExYvtgRWNgweSFx9RiEic"/>
+android:value="AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps"/>
       <service android:name="com.simplegeofencing.reactnative.GeofenceTransitionsIntentService"/>
         <service android:name="com.simplegeofencing.reactnative.ShowTimeoutNotification" />
       <service android:name="com.simplegeofencing.reactnative.MonitorUpdateService"/>
