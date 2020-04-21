@@ -5,7 +5,7 @@
  * @format
  * @flow strict-local
  */
-import { getDistance, getPreciseDistance } from 'geolib';
+import { getDistance, getPreciseDistance, getLatitude } from 'geolib';
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 
@@ -31,7 +31,7 @@ import { PermissionsAndroid } from 'react-native';
 
 const homePlace = { description: 'Home', geometry: { location: { lat: 21.0312269, lng: 105.7726269 } } };
 const workPlace = { description: 'Work', geometry: { location: { lat: 21.0312269, lng: 105.7726269 } } };
-const GooglePlacesInput = () => {
+const GooglePlacesInput = (props) => {
   return (
     <GooglePlacesAutocomplete
       placeholder='Search'
@@ -39,10 +39,12 @@ const GooglePlacesInput = () => {
       autoFocus={false}
       returnKeyType={'search'} // Can be left out for default return key https://facebook.github.io/react-native/docs/textinput.html#returnkeytype
       keyboardAppearance={'light'} // Can be left out for default keyboardAppearance https://facebook.github.io/react-native/docs/textinput.html#keyboardappearance
-      listViewDisplayed='true'    // true/false/undefined
+      listViewDisplayed='auto'    // true/false/undefined
       fetchDetails={true}
-      onPress={() => { // 'details' is provided when fetchDetails = true
-        console.log("data, details");
+      onPress={(data, detail = null) => { // 'details' is provided when fetchDetails = true
+        console.log("detail")
+        console.log(data)
+        props.onPress(data)
       }}
 
       getDefaultValue={() => ''}
@@ -87,20 +89,27 @@ const GooglePlacesInput = () => {
       predefinedPlaces={[homePlace, workPlace]}
 
       debounce={200} // debounce the requests in ms. Set to 0 to remove debounce. By default 0ms.
-      // renderLeftButton={()  => <Image source={require('path/custom/left-icon')} />}
-      // renderRightButton={() => <Text>Custom text after the input</Text>}
+    // renderLeftButton={()  => <Image source={require('path/custom/left-icon')} />}
+    // renderRightButton={() => <Text>Custom text after the input</Text>}
     />
   );
 }
 export default class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      selectLocation: {}
+    }
+  }
 
   updateLocation = (location) => {
-    // console.log("location")
-    // console.log(location)
     let distance = getDistance(
       { latitude: location.latitude, longitude: location.longitude },
       //location nhà tịp
-      { latitude: 21.027763, longitude: 105.834160 },
+      {
+        latitude: this.state.selectLocation.location ? this.state.selectLocation.location.lat : 21.027763,
+        longitude: this.state.selectLocation.location ? this.state.selectLocation.location.lng : 105.834160
+      },
       //location hồ gươm
       // { latitude: 21.0312364, longitude: 105.7726794 },
     );
@@ -253,18 +262,34 @@ export default class App extends Component {
         <StatusBar barStyle="dark-content" />
         <SafeAreaView>
           <ScrollView
+            keyboardShouldPersistTaps="always"
             contentInsetAdjustmentBehavior="automatic"
             style={styles.scrollView}>
-            
+
             <View style={styles.body}>
 
-              <GooglePlacesInput />
-
+              <GooglePlacesInput onPress={this.onPress} />
+              <Text>{this.state.selectLocation.description ? this.state.selectLocation.description : ""}</Text>
             </View>
           </ScrollView>
         </SafeAreaView>
       </View>
     )
+  }
+  onPress = async (location) => {
+    var url = `https://maps.googleapis.com/maps/api/place/details/json?placeid=${location.place_id}&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`
+    await fetch(url).then((response) => response.json())
+      .then((json) => {
+        console.log(json)
+        let newLocation = location
+        newLocation.location = json.result.geometry.location
+        this.setState({
+          selectLocation: newLocation
+        })
+        console.log("newLocation")
+        console.log(newLocation)
+      })
+
   }
 }
 
