@@ -7,8 +7,6 @@
  */
 import { getDistance, getPreciseDistance, getLatitude } from 'geolib';
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-
 import {
   SafeAreaView,
   StyleSheet,
@@ -17,7 +15,8 @@ import {
   Text,
   StatusBar,
   TouchableOpacity,
-  Image
+  Image,
+  Dimensions
 } from 'react-native';
 import {
   Header,
@@ -28,72 +27,8 @@ import {
 } from 'react-native/Libraries/NewAppScreen';
 import React, { Component } from 'react'
 import { PermissionsAndroid } from 'react-native';
+import MapView from 'react-native-maps';
 
-const homePlace = { description: 'Home', geometry: { location: { lat: 21.0312269, lng: 105.7726269 } } };
-const workPlace = { description: 'Work', geometry: { location: { lat: 21.0312269, lng: 105.7726269 } } };
-const GooglePlacesInput = (props) => {
-  return (
-    <GooglePlacesAutocomplete
-      placeholder='Search'
-      minLength={2} // minimum length of text to search
-      autoFocus={false}
-      returnKeyType={'search'} // Can be left out for default return key https://facebook.github.io/react-native/docs/textinput.html#returnkeytype
-      keyboardAppearance={'light'} // Can be left out for default keyboardAppearance https://facebook.github.io/react-native/docs/textinput.html#keyboardappearance
-      listViewDisplayed='auto'    // true/false/undefined
-      fetchDetails={true}
-      onPress={(data, detail = null) => { // 'details' is provided when fetchDetails = true
-        console.log("detail")
-        console.log(data)
-        props.onPress(data)
-      }}
-
-      getDefaultValue={() => ''}
-
-      query={{
-        // available options: https://developers.google.com/places/web-service/autocomplete
-        key: 'AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps',
-        language: 'en', // language of the results
-        types: '(cities)' // default: 'geocode'
-      }}
-
-      styles={{
-        textInputContainer: {
-          width: '100%'
-        },
-        description: {
-          fontWeight: 'bold'
-        },
-        predefinedPlacesDescription: {
-          color: '#1faadb'
-        }
-      }}
-
-      currentLocation={true} // Will add a 'Current location' button at the top of the predefined places list
-      currentLocationLabel="Current location"
-      nearbyPlacesAPI='GooglePlacesSearch' // Which API to use: GoogleReverseGeocoding or GooglePlacesSearch
-      GoogleReverseGeocodingQuery={{
-        // available options for GoogleReverseGeocoding API : https://developers.google.com/maps/documentation/geocoding/intro
-      }}
-      GooglePlacesSearchQuery={{
-        // available options for GooglePlacesSearch API : https://developers.google.com/places/web-service/search
-        rankby: 'distance',
-        type: 'cafe'
-      }}
-
-      GooglePlacesDetailsQuery={{
-        // available options for GooglePlacesDetails API : https://developers.google.com/places/web-service/details
-        fields: 'formatted_address',
-      }}
-
-      filterReverseGeocodingByTypes={['locality', 'administrative_area_level_3']} // filter the reverse geocoding results by types - ['locality', 'administrative_area_level_3'] if you want to display only cities
-      predefinedPlaces={[homePlace, workPlace]}
-
-      debounce={200} // debounce the requests in ms. Set to 0 to remove debounce. By default 0ms.
-    // renderLeftButton={()  => <Image source={require('path/custom/left-icon')} />}
-    // renderRightButton={() => <Text>Custom text after the input</Text>}
-    />
-  );
-}
 export default class App extends Component {
   constructor(props) {
     super(props);
@@ -106,9 +41,13 @@ export default class App extends Component {
     let distance = getDistance(
       { latitude: location.latitude, longitude: location.longitude },
       //location nhà tịp
+      // {
+      //   latitude: this.state.selectLocation.location ? this.state.selectLocation.location.lat : 21.027763,
+      //   longitude: this.state.selectLocation.location ? this.state.selectLocation.location.lng : 105.834160
+      // },
       {
-        latitude: this.state.selectLocation.location ? this.state.selectLocation.location.lat : 21.027763,
-        longitude: this.state.selectLocation.location ? this.state.selectLocation.location.lng : 105.834160
+        latitude: 21.027763,
+        longitude: 105.834160
       },
       //location hồ gươm
       // { latitude: 21.0312364, longitude: 105.7726794 },
@@ -267,30 +206,35 @@ export default class App extends Component {
             style={styles.scrollView}>
 
             <View style={styles.body}>
-
-              <GooglePlacesInput onPress={this.onPress} />
-              <Text>{this.state.selectLocation.description ? this.state.selectLocation.description : ""}</Text>
+              <Text>123123123</Text>
+              <MapView
+                initialRegion={{
+                  latitude: 37.78825,
+                  longitude: -122.4324,
+                  latitudeDelta: 0.0922,
+                  longitudeDelta: 0.0421,
+                }}
+              />
             </View>
           </ScrollView>
         </SafeAreaView>
       </View>
     )
   }
-  onPress = async (location) => {
-    var url = `https://maps.googleapis.com/maps/api/place/details/json?placeid=${location.place_id}&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`
-    await fetch(url).then((response) => response.json())
-      .then((json) => {
-        console.log(json)
-        let newLocation = location
-        newLocation.location = json.result.geometry.location
-        this.setState({
-          selectLocation: newLocation
-        })
-        console.log("newLocation")
-        console.log(newLocation)
-      })
-
-  }
+  // onPress = async (location) => {
+  //   var url = `https://maps.googleapis.com/maps/api/place/details/json?placeid=${location.place_id}&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`
+  //   await fetch(url).then((response) => response.json())
+  //     .then((json) => {
+  //       console.log(json)
+  //       let newLocation = location
+  //       newLocation.location = json.result.geometry.location
+  //       this.setState({
+  //         selectLocation: newLocation
+  //       })
+  //       console.log("newLocation")
+  //       console.log(newLocation)
+  //     })
+  // }
 }
 
 
@@ -304,6 +248,7 @@ const styles = StyleSheet.create({
   },
   body: {
     backgroundColor: Colors.white,
+    height: Dimensions.get('window').height
   },
   sectionContainer: {
     marginTop: 32,
