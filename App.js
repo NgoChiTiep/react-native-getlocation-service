@@ -7,6 +7,8 @@
  */
 import { getDistance, getPreciseDistance } from 'geolib';
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+
 import {
   SafeAreaView,
   StyleSheet,
@@ -15,6 +17,7 @@ import {
   Text,
   StatusBar,
   TouchableOpacity,
+  Image
 } from 'react-native';
 import {
   Header,
@@ -26,12 +29,80 @@ import {
 import React, { Component } from 'react'
 import { PermissionsAndroid } from 'react-native';
 
+const homePlace = { description: 'Home', geometry: { location: { lat: 21.0312269, lng: 105.7726269 } } };
+const workPlace = { description: 'Work', geometry: { location: { lat: 21.0312269, lng: 105.7726269 } } };
+const GooglePlacesInput = () => {
+  return (
+    <GooglePlacesAutocomplete
+      placeholder='Search'
+      minLength={2} // minimum length of text to search
+      autoFocus={false}
+      returnKeyType={'search'} // Can be left out for default return key https://facebook.github.io/react-native/docs/textinput.html#returnkeytype
+      keyboardAppearance={'light'} // Can be left out for default keyboardAppearance https://facebook.github.io/react-native/docs/textinput.html#keyboardappearance
+      listViewDisplayed='true'    // true/false/undefined
+      fetchDetails={true}
+      onPress={() => { // 'details' is provided when fetchDetails = true
+        console.log("data, details");
+      }}
+
+      getDefaultValue={() => ''}
+
+      query={{
+        // available options: https://developers.google.com/places/web-service/autocomplete
+        key: 'AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps',
+        language: 'en', // language of the results
+        types: '(cities)' // default: 'geocode'
+      }}
+
+      styles={{
+        textInputContainer: {
+          width: '100%'
+        },
+        description: {
+          fontWeight: 'bold'
+        },
+        predefinedPlacesDescription: {
+          color: '#1faadb'
+        }
+      }}
+
+      currentLocation={true} // Will add a 'Current location' button at the top of the predefined places list
+      currentLocationLabel="Current location"
+      nearbyPlacesAPI='GooglePlacesSearch' // Which API to use: GoogleReverseGeocoding or GooglePlacesSearch
+      GoogleReverseGeocodingQuery={{
+        // available options for GoogleReverseGeocoding API : https://developers.google.com/maps/documentation/geocoding/intro
+      }}
+      GooglePlacesSearchQuery={{
+        // available options for GooglePlacesSearch API : https://developers.google.com/places/web-service/search
+        rankby: 'distance',
+        type: 'cafe'
+      }}
+
+      GooglePlacesDetailsQuery={{
+        // available options for GooglePlacesDetails API : https://developers.google.com/places/web-service/details
+        fields: 'formatted_address',
+      }}
+
+      filterReverseGeocodingByTypes={['locality', 'administrative_area_level_3']} // filter the reverse geocoding results by types - ['locality', 'administrative_area_level_3'] if you want to display only cities
+      predefinedPlaces={[homePlace, workPlace]}
+
+      debounce={200} // debounce the requests in ms. Set to 0 to remove debounce. By default 0ms.
+      // renderLeftButton={()  => <Image source={require('path/custom/left-icon')} />}
+      // renderRightButton={() => <Text>Custom text after the input</Text>}
+    />
+  );
+}
 export default class App extends Component {
 
   updateLocation = (location) => {
+    // console.log("location")
+    // console.log(location)
     let distance = getDistance(
       { latitude: location.latitude, longitude: location.longitude },
+      //location nhà tịp
       { latitude: 21.027763, longitude: 105.834160 },
+      //location hồ gươm
+      // { latitude: 21.0312364, longitude: 105.7726794 },
     );
     console.log("distance")
     console.log(distance)
@@ -184,40 +255,11 @@ export default class App extends Component {
           <ScrollView
             contentInsetAdjustmentBehavior="automatic"
             style={styles.scrollView}>
-            <Header />
-            {global.HermesInternal == null ? null : (
-              <View style={styles.engine}>
-                <Text style={styles.footer}>Engine: Hermes</Text>
-              </View>
-            )}
+            
             <View style={styles.body}>
 
-              <View style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}>Step One</Text>
-                <Text style={styles.sectionDescription}>
-                  Edit <Text style={styles.highlight}>App.js</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-              </View>
-              <View style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}>See Your Changes</Text>
-                <Text style={styles.sectionDescription}>
-                  <ReloadInstructions />
-                </Text>
-              </View>
-              <View style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}>Debug</Text>
-                <Text style={styles.sectionDescription}>
-                  <DebugInstructions />
-                </Text>
-              </View>
-              <View style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}>Learn More</Text>
-                <Text style={styles.sectionDescription}>
-                  Read the docs to discover what to do next:
-              </Text>
-              </View>
-              <LearnMoreLinks />
+              <GooglePlacesInput />
+
             </View>
           </ScrollView>
         </SafeAreaView>
