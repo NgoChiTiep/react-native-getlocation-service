@@ -5,6 +5,7 @@
  * @format
  * @flow strict-local
  */
+console.disableYellowBox = true; 
 import { getDistance, getPreciseDistance, getLatitude } from 'geolib';
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
 import {
@@ -16,7 +17,8 @@ import {
   StatusBar,
   TouchableOpacity,
   Image,
-  Dimensions
+  Dimensions,
+  Button
 } from 'react-native';
 import {
   Header,
@@ -38,7 +40,9 @@ export default class App extends Component {
       },
       regionUser: {
 
-      }
+      },
+      stringRegion: "",
+      loading: false
     }
   }
 
@@ -71,6 +75,8 @@ export default class App extends Component {
   }
   async componentDidMount() {
     BackgroundGeolocation.getLocations((locations) => {
+      console.log("locations[0]")
+      console.log(locations[0])
       var region = {
         latitude: locations[0].latitude,
         longitude: locations[0].longitude,
@@ -78,7 +84,8 @@ export default class App extends Component {
         longitudeDelta: 0.0421,
       }
       this.setState({
-        region: region
+        region: region,
+        loading: false
       })
     })
     BackgroundGeolocation.configure({
@@ -234,51 +241,88 @@ export default class App extends Component {
   render() {
     const width = Dimensions.get('window').width
     const height = Dimensions.get('window').height
-    const { region, regionUser } = this.state
-    console.log("------êr------")
-    console.log(regionUser)
+    const { region, regionUser, loading } = this.state
     return (
-      <View>
+      <View style={{ flexDirection: "column" }}>
         <StatusBar barStyle="dark-content" />
-        <SafeAreaView>
-          {regionUser.latitude && region.latitude &&
-            <MapView
-              style={{ width: width, height: height }}
-              region={region}
-              initialRegion={regionUser}
-              onRegionChangeComplete={this.onRegionChange}
-            >
-              <Marker
-                coordinate={{
-                  "latitude": regionUser.latitude,
-                  "longitude": regionUser.longitude
-                }}
-                title={"Your Location"}
+        {regionUser.latitude && region.latitude &&
+          <MapView
+            style={{ width: width, height: height * 0.7 }}
+            // region={region}
+            initialRegion={regionUser}
+            onRegionChangeComplete={this.onRegionChange}
+            showsUserLocation={true}
+          >
+            {/* <Marker
+              coordinate={{
+                "latitude": regionUser.latitude,
+                "longitude": regionUser.longitude
+              }}
+              title={"Your Location"}
+            /> */}
+            <Marker
+              coordinate={{
+                "latitude": this.state.region.latitude,
+                "longitude": this.state.region.longitude
+              }}
+              draggable >
+              <Image
+                style={{ width: 40, height: 40, }}
+                resizeMode="contain"
+                source={require("./assets/location.png")}
               />
-              <Marker
-                coordinate={{
-                  "latitude": this.state.region.latitude,
-                  "longitude": this.state.region.longitude
-                }}
-                draggable >
-                <Image
-                  style={{ width: 40, height: 40,  }}
-                  resizeMode="contain"
-                  source={require("./assets/location.png")}
-                />
-              </Marker>
+            </Marker>
 
-            </MapView>
-          }
-        </SafeAreaView>
+          </MapView>
+
+        }
+        <View style={{ backgroundColor: "white", paddingHorizontal: 10, paddingVertical: 10 }}>
+          <Text style={{ fontWeight: "bold", fontSize: 15, color: "grey", marginBottom: 15 }}>Move map for location</Text>
+          <Text style={{ fontSize: 13, color: "grey", marginBottom: 5 }}>Location</Text>
+          <Text style={{ fontSize: 13, color: "grey", marginBottom: 10 }}>
+            { loading?
+            "Indentifying location...." : this.state.stringRegion}</Text>
+          <View style={{ width: "100%", height: 0.7, backgroundColor: "grey", marginBottom: 10 }} />
+          <Button
+            title="Pick this location"
+            color="#3976ff"
+            disabled={loading? true : false}
+            onPress={() => this.getRegion()}
+          />
+        </View>
       </View>
+    
+
     )
+  }
+  setLoading = () =>{
+    this.setState({
+      loading: true
+    })
+  }
+  getRegion = () => {
+    console.log("!23213")
   }
   onRegionChange = (region) => {
     this.setState({
-      region: region
-    })
+      region: region,
+      loading: true
+    }, ()=> this.fetchAddress())
   }
+  fetchAddress = () => {
+    fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${this.state.region.latitude},${this.state.region.longitude}&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`)
+      .then((response) => response.json())
+      .then((responseJson) => {
+        console.log("responseJson")
+        console.log(responseJson)
+        const stringRegion = responseJson.results[0].formatted_address;
+        this.setState({
+          stringRegion: stringRegion,
+          loading: false
+        });
+      });
+  }
+
 
 }
 
@@ -298,6 +342,9 @@ const styles = StyleSheet.create({
   sectionContainer: {
     marginTop: 32,
     paddingHorizontal: 24,
+  },
+  button: {
+    width: 300, paddingVertical: 20, alignItems: "center", justifyContent: "center", backgroundColor: "#3976ff"
   },
   sectionTitle: {
     fontSize: 24,
