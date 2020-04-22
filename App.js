@@ -27,34 +27,35 @@ import {
 } from 'react-native/Libraries/NewAppScreen';
 import React, { Component } from 'react'
 import { PermissionsAndroid } from 'react-native';
-import MapView from 'react-native-maps';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectLocation: {}
+      region: {
+
+      },
+      regionUser: {
+
+      }
     }
   }
 
   updateLocation = (location) => {
+    console.log("this.state.region")
+    console.log(this.state.region)
     let distance = getDistance(
       { latitude: location.latitude, longitude: location.longitude },
-      //location nhà tịp
-      // {
-      //   latitude: this.state.selectLocation.location ? this.state.selectLocation.location.lat : 21.027763,
-      //   longitude: this.state.selectLocation.location ? this.state.selectLocation.location.lng : 105.834160
-      // },
+
       {
-        latitude: 21.027763,
-        longitude: 105.834160
+        latitude: this.state.region.latitude,
+        longitude: this.state.region.longitude
       },
-      //location hồ gươm
-      // { latitude: 21.0312364, longitude: 105.7726794 },
     );
     console.log("distance")
     console.log(distance)
-    if (distance < 500) {
+    if (distance < 100) {
       let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
         location.latitude +
         '&long=' +
@@ -68,7 +69,18 @@ export default class App extends Component {
         })
     }
   }
-  componentDidMount() {
+  async componentDidMount() {
+    BackgroundGeolocation.getLocations((locations) => {
+      var region = {
+        latitude: locations[0].latitude,
+        longitude: locations[0].longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      }
+      this.setState({
+        region: region
+      })
+    })
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
       // stationaryRadius: 50,
@@ -97,6 +109,17 @@ export default class App extends Component {
     });
 
     BackgroundGeolocation.on('location', (location) => {
+      var region = {
+        latitude: location.latitude,
+        longitude: location.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      }
+      this.setState({
+        regionUser: region,
+      })
+      console.log("this.state.regionUser")
+      console.log(this.state.regionUser)
       this.updateLocation(location)
       // handle your locations here
       // to perform long running operation on iOS
@@ -143,6 +166,15 @@ export default class App extends Component {
       console.log('[INFO] App is in background');
 
       BackgroundGeolocation.getLocations((locations) => {
+        var region = {
+          latitude: locations[0].latitude,
+          longitude: locations[0].longitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        }
+        this.setState({
+          regionUser: region
+        })
         this.updateLocation(locations[0])
       }
       );
@@ -151,9 +183,16 @@ export default class App extends Component {
     BackgroundGeolocation.headlessTask(async (event) => {
       if (event.name === 'location' ||
         event.name === 'stationary') {
-        console.log("---------------------")
-        console.log(event)
         BackgroundGeolocation.getLocations((locations) => {
+          var region = {
+            latitude: locations[0].latitude,
+            longitude: locations[0].longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }
+          this.setState({
+            regionUser: region
+          })
           this.updateLocation(locations[0])
         }
         );
@@ -190,51 +229,57 @@ export default class App extends Component {
   }
 
   componentWillUnmount() {
-    // unregister all event listeners
     BackgroundGeolocation.removeAllListeners();
-
-
   }
   render() {
+    const width = Dimensions.get('window').width
+    const height = Dimensions.get('window').height
+    const { region, regionUser } = this.state
+    console.log("------êr------")
+    console.log(regionUser)
     return (
       <View>
         <StatusBar barStyle="dark-content" />
         <SafeAreaView>
-          <ScrollView
-            keyboardShouldPersistTaps="always"
-            contentInsetAdjustmentBehavior="automatic"
-            style={styles.scrollView}>
-
-            <View style={styles.body}>
-              <Text>123123123</Text>
-              <MapView
-                initialRegion={{
-                  latitude: 37.78825,
-                  longitude: -122.4324,
-                  latitudeDelta: 0.0922,
-                  longitudeDelta: 0.0421,
+          {regionUser.latitude && region.latitude &&
+            <MapView
+              style={{ width: width, height: height }}
+              region={region}
+              initialRegion={regionUser}
+              onRegionChangeComplete={this.onRegionChange}
+            >
+              <Marker
+                coordinate={{
+                  "latitude": regionUser.latitude,
+                  "longitude": regionUser.longitude
                 }}
+                title={"Your Location"}
               />
-            </View>
-          </ScrollView>
+              <Marker
+                coordinate={{
+                  "latitude": this.state.region.latitude,
+                  "longitude": this.state.region.longitude
+                }}
+                draggable >
+                <Image
+                  style={{ width: 40, height: 40,  }}
+                  resizeMode="contain"
+                  source={require("./assets/location.png")}
+                />
+              </Marker>
+
+            </MapView>
+          }
         </SafeAreaView>
       </View>
     )
   }
-  // onPress = async (location) => {
-  //   var url = `https://maps.googleapis.com/maps/api/place/details/json?placeid=${location.place_id}&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`
-  //   await fetch(url).then((response) => response.json())
-  //     .then((json) => {
-  //       console.log(json)
-  //       let newLocation = location
-  //       newLocation.location = json.result.geometry.location
-  //       this.setState({
-  //         selectLocation: newLocation
-  //       })
-  //       console.log("newLocation")
-  //       console.log(newLocation)
-  //     })
-  // }
+  onRegionChange = (region) => {
+    this.setState({
+      region: region
+    })
+  }
+
 }
 
 
