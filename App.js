@@ -5,9 +5,10 @@
  * @format
  * @flow strict-local
  */
-console.disableYellowBox = true; 
+console.disableYellowBox = true;
 import { getDistance, getPreciseDistance, getLatitude } from 'geolib';
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
+import AsyncStorage from '@react-native-community/async-storage';
 import {
   SafeAreaView,
   StyleSheet,
@@ -39,6 +40,9 @@ export default class App extends Component {
 
       },
       regionUser: {
+
+      },
+      pickRegion: {
 
       },
       stringRegion: "",
@@ -74,20 +78,32 @@ export default class App extends Component {
     }
   }
   async componentDidMount() {
-    BackgroundGeolocation.getLocations((locations) => {
-      console.log("locations[0]")
-      console.log(locations[0])
-      var region = {
-        latitude: locations[0].latitude,
-        longitude: locations[0].longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      }
+    var define_region = await AsyncStorage.getItem("define_region")
+    console.log("777777777777777777")
+    console.log(JSON.parse(define_region))
+    if (define_region) {
       this.setState({
-        region: region,
-        loading: false
+        region: JSON.parse(define_region),
+        pickRegion: JSON.parse(define_region)
       })
-    })
+    }
+    else {
+      BackgroundGeolocation.getLocations((locations) => {
+        console.log("locations[0]")
+        console.log(locations[0])
+        var region = {
+          latitude: locations[0].latitude,
+          longitude: locations[0].longitude,
+          latitudeDelta: 0.001,
+          longitudeDelta: 0.001
+        }
+        this.setState({
+          region: region,
+          loading: false
+        })
+      })
+    }
+
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
       // stationaryRadius: 50,
@@ -119,8 +135,8 @@ export default class App extends Component {
       var region = {
         latitude: location.latitude,
         longitude: location.longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
+        latitudeDelta: 0.001,
+        longitudeDelta: 0.001
       }
       this.setState({
         regionUser: region,
@@ -176,8 +192,8 @@ export default class App extends Component {
         var region = {
           latitude: locations[0].latitude,
           longitude: locations[0].longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
+          latitudeDelta: 0.001,
+          longitudeDelta: 0.001
         }
         this.setState({
           regionUser: region
@@ -194,8 +210,8 @@ export default class App extends Component {
           var region = {
             latitude: locations[0].latitude,
             longitude: locations[0].longitude,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
+            latitudeDelta: 0.001,
+            longitudeDelta: 0.001
           }
           this.setState({
             regionUser: region
@@ -241,73 +257,79 @@ export default class App extends Component {
   render() {
     const width = Dimensions.get('window').width
     const height = Dimensions.get('window').height
-    const { region, regionUser, loading } = this.state
+    const { region, regionUser, loading, pickRegion } = this.state
     return (
-      <View style={{ flexDirection: "column" }}>
+      <ScrollView style={{ flexDirection: "column", flex: 1 }}>
         <StatusBar barStyle="dark-content" />
         {regionUser.latitude && region.latitude &&
           <MapView
             style={{ width: width, height: height * 0.7 }}
-            // region={region}
-            initialRegion={regionUser}
+            initialRegion={region}
             onRegionChangeComplete={this.onRegionChange}
             showsUserLocation={true}
           >
-            {/* <Marker
-              coordinate={{
-                "latitude": regionUser.latitude,
-                "longitude": regionUser.longitude
-              }}
-              title={"Your Location"}
-            /> */}
             <Marker
               coordinate={{
                 "latitude": this.state.region.latitude,
                 "longitude": this.state.region.longitude
               }}
-              draggable >
-              <Image
-                style={{ width: 40, height: 40, }}
-                resizeMode="contain"
-                source={require("./assets/location.png")}
-              />
-            </Marker>
-
+              draggable
+            />
+            {
+              pickRegion.latitude && <Marker
+                coordinate={{
+                  "latitude": this.state.pickRegion.latitude,
+                  "longitude": this.state.pickRegion.longitude
+                }}
+                draggable >
+                <Image
+                  style={{ width: 40, height: 40, }}
+                  resizeMode="contain"
+                  source={require("./assets/location.png")}
+                />
+              </Marker>
+            }
           </MapView>
 
         }
-        <View style={{ backgroundColor: "white", paddingHorizontal: 10, paddingVertical: 10 }}>
+        <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 10, paddingVertical: 10 }}>
           <Text style={{ fontWeight: "bold", fontSize: 15, color: "grey", marginBottom: 15 }}>Move map for location</Text>
           <Text style={{ fontSize: 13, color: "grey", marginBottom: 5 }}>Location</Text>
           <Text style={{ fontSize: 13, color: "grey", marginBottom: 10 }}>
-            { loading?
-            "Indentifying location...." : this.state.stringRegion}</Text>
+            {loading ?
+              "Indentifying location...." : this.state.stringRegion}</Text>
           <View style={{ width: "100%", height: 0.7, backgroundColor: "grey", marginBottom: 10 }} />
           <Button
             title="Pick this location"
             color="#3976ff"
-            disabled={loading? true : false}
-            onPress={() => this.getRegion()}
+            disabled={loading ? true : false}
+            onPress={() => this.pickRegion()}
           />
         </View>
-      </View>
-    
+      </ScrollView>
+
 
     )
   }
-  setLoading = () =>{
+  setLoading = () => {
     this.setState({
       loading: true
     })
   }
-  getRegion = () => {
-    console.log("!23213")
+  pickRegion = () => {
+    this.setState({
+      pickRegion: this.state.region
+    }, async () => {
+      console.log("this.state.pickRegion")
+      var save = JSON.stringify(this.state.pickRegion)
+      await AsyncStorage.setItem('define_region', save)
+    })
   }
   onRegionChange = (region) => {
     this.setState({
       region: region,
       loading: true
-    }, ()=> this.fetchAddress())
+    }, () => this.fetchAddress())
   }
   fetchAddress = () => {
     fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${this.state.region.latitude},${this.state.region.longitude}&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`)
