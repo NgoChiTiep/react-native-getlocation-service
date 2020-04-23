@@ -114,43 +114,23 @@ export default class App extends Component {
       }
     );
     var listDefine = await AsyncStorage.getItem("define_region")
-    console.log("12321312")
     console.log(JSON.parse(listDefine))
     if (listDefine) {
       this.setState({
         listRegion: JSON.parse(listDefine)
-      }, ()=> console.log(this.state.listRegion))
+      }, () => {
+        console.log("12321312")
+        console.log(this.state.listRegion)
+        this.startMonitoring(this.state.listRegion)
+      })
     }
-    this.startMonitoring()
   }
   fail() {
     console.log("Fail to start geofencing")
   }
-  startMonitoring() {
-    let geofences = [
-      {
-        key: "geoNum1",
-        latitude: 38.9204,
-        longitude: -77.0175,
-        radius: 200,
-        value: "yellow"
-      },
-      {
-        key: "geoNum2",
-        latitude: 38.9248,
-        longitude: -77.0258,
-        radius: 100,
-        value: "green"
-      },
-      {
-        key: "geoNum3",
-        latitude: 47.423,
-        longitude: -122.084,
-        radius: 150,
-        value: "red"
-      }
-    ];
+  startMonitoring(geofences) {
     RNSimpleNativeGeofencing.addGeofences(geofences, 3000000, this.fail);
+    console.log("doneeee")
   }
 
   stopMonitoring() {
@@ -202,7 +182,7 @@ export default class App extends Component {
           <Text style={{ fontSize: 13, color: "grey", marginBottom: 5 }}>Location</Text>
           <Text style={{ fontSize: 13, color: "grey", marginBottom: 10 }}>
             {loading ?
-              "Indentifying location...." : this.state.region.title}</Text>
+              "Indentifying location...." : this.state.region.value}</Text>
           <View style={{ width: "100%", height: 0.7, backgroundColor: "grey", marginBottom: 10 }} />
           <Button
             title="Pick this location"
@@ -241,8 +221,8 @@ export default class App extends Component {
       .then((responseJson) => {
         var detail = { ...this.state.region }
         detail.key = responseJson.results[0].place_id
-        detail.title = responseJson.results[0].formatted_address
-        detail.radius = 100
+        detail.value = responseJson.results[0].formatted_address
+        detail.radius = 1000
         this.setState({
           region: detail,
           loading: false
