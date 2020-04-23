@@ -123,6 +123,7 @@ export default class App extends Component {
     console.log('Fail to start geofencing');
   }
   startMonitoring(geofences) {
+    console.log('xxxxxxxasdasdadasdasdasdadadadadadadasd');
     RNSimpleNativeGeofencing.addGeofences(geofences, 3000000, this.fail);
     RNSimpleNativeGeofencing.startMonitoring(err => {
       console.log('err111111111');
@@ -139,12 +140,17 @@ export default class App extends Component {
   }
 
   componentWillUnmount() {
-    BackgroundGeolocation.removeAllListeners();
+    // BackgroundGeolocation.removeAllListeners();
   }
   render() {
     const width = Dimensions.get('window').width;
     const height = Dimensions.get('window').height;
-    const {region, regionUser, loading, hasGeoFence, listRegion, startMonitoring} = this.state;
+    const {
+      region,
+      loading,
+      hasGeoFence,
+      listRegion,
+    } = this.state;
     return (
       <ScrollView style={{flexDirection: 'column', flex: 1}}>
         <StatusBar barStyle="dark-content" />
@@ -219,19 +225,19 @@ export default class App extends Component {
         <View style={styles.buttons}>
           {hasGeoFence ? (
             <Button
-              onPress={stopMonitoring}
+              // onPress={stopMonitoring}
               style={styles.button}
               title="Stop Monitoring"
             />
           ) : (
             <Button
-              onPress={startMonitoring}
+              onPress={() => this.startMonitoring(this.state.listRegion)}
               style={styles.button}
               title="Start Monitoring"
             />
           )}
           <Button
-            onPress={() => onDelete(id)}
+            // onPress={() => onDelete(id)}
             style={styles.button}
             color="red"
             title="Delete"
