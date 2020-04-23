@@ -79,6 +79,8 @@ target 'rn_location' do
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
   # pod 'react-native-geolocation', path: '../node_modules/@react-native-community/geolocation'
 
+  # pod 'RNSimpleNativeGeofencing', :path => '../node_modules/react-native-simple-native-geofencing'
+
   target 'rn_locationTests' do
     inherit! :complete
     # Pods for testing
