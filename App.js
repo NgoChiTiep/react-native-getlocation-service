@@ -17,7 +17,7 @@ import {
   View,
   Text,
   StatusBar,
-  NativeEventEmitter,
+  TouchableOpacity,
   Image,
   Dimensions,
   Button,
@@ -29,10 +29,9 @@ import {
   DebugInstructions,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
-import React, {Component, useState} from 'react';
+import React, {Component} from 'react';
 import {PermissionsAndroid} from 'react-native';
 import MapView, {Marker, Polyline} from 'react-native-maps';
-
 async function requestLocationPermission() {
   try {
     const granted = await PermissionsAndroid.request(
@@ -51,7 +50,6 @@ async function requestLocationPermission() {
     console.warn(err);
   }
 }
-
 export default class App extends Component {
   constructor(props) {
     super(props);
@@ -78,7 +76,7 @@ export default class App extends Component {
     }
   }
   componentDidMount = async () => {
-    //set up Notifications
+    console.log('22222222');
     RNSimpleNativeGeofencing.initNotification({
       channel: {
         title: 'Message Channel Title',
@@ -107,58 +105,30 @@ export default class App extends Component {
       },
     });
     var listDefine = await AsyncStorage.getItem('define_region');
-    console.log('12321312');
     console.log(JSON.parse(listDefine));
     if (listDefine) {
       this.setState(
         {
           listRegion: JSON.parse(listDefine),
         },
-        () => console.log(this.state.listRegion),
+        () => {
+          console.log('12321312');
+          console.log(this.state.listRegion);
+          this.startMonitoring(this.state.listRegion);
+        },
       );
     }
-
-    const myModuleEvt = new NativeEventEmitter(RNSimpleNativeGeofencing);
-    let subscription = myModuleEvt.addListener(
-      'leftMonitoringBorderWithDuration',
-      result => {
-        //result is a Object with the remaining
-        //duration of the activ geofences & a boolean
-        //for leaving or entering the monitoring boarder
-
-        console.log('Event :');
-        console.log(JSON.stringify(result, null, 2));
-      },
-    );
   };
   fail() {
     console.log('Fail to start geofencing');
   }
-  startMonitoring() {
-    let geofences = [
-      {
-        key: 'geoNum1',
-        latitude: 38.9204,
-        longitude: -77.0175,
-        radius: 200,
-        value: 'yellow',
-      },
-      {
-        key: 'geoNum2',
-        latitude: 38.9248,
-        longitude: -77.0258,
-        radius: 100,
-        value: 'green',
-      },
-      {
-        key: 'geoNum3',
-        latitude: 47.423,
-        longitude: -122.084,
-        radius: 150,
-        value: 'red',
-      },
-    ];
+  startMonitoring(geofences) {
     RNSimpleNativeGeofencing.addGeofences(geofences, 3000000, this.fail);
+    RNSimpleNativeGeofencing.startMonitoring(err => {
+      console.log('err111111111');
+      console.log(err);
+    });
+    console.log('doneeee');
     this.setState({
       hasGeoFence: true,
     });
@@ -169,20 +139,12 @@ export default class App extends Component {
   }
 
   componentWillUnmount() {
-    // BackgroundGeolocation.removeAllListeners();
+    BackgroundGeolocation.removeAllListeners();
   }
   render() {
     const width = Dimensions.get('window').width;
     const height = Dimensions.get('window').height;
-    const {
-      region,
-      regionUser,
-      loading,
-      pickRegion,
-      listRegion,
-      hasGeoFence,
-      startMonitoring,
-    } = this.state;
+    const {region, regionUser, loading, hasGeoFence, listRegion, startMonitoring} = this.state;
     return (
       <ScrollView style={{flexDirection: 'column', flex: 1}}>
         <StatusBar barStyle="dark-content" />
@@ -236,7 +198,7 @@ export default class App extends Component {
             Location
           </Text>
           <Text style={{fontSize: 13, color: 'grey', marginBottom: 10}}>
-            {loading ? 'Indentifying location....' : this.state.region.title}
+            {loading ? 'Indentifying location....' : this.state.region.value}
           </Text>
           <View
             style={{
@@ -253,6 +215,7 @@ export default class App extends Component {
             onPress={this.chooseRegion}
           />
         </View>
+
         <View style={styles.buttons}>
           {hasGeoFence ? (
             <Button
@@ -316,8 +279,8 @@ export default class App extends Component {
       .then(responseJson => {
         var detail = {...this.state.region};
         detail.key = responseJson.results[0].place_id;
-        detail.title = responseJson.results[0].formatted_address;
-        detail.radius = 100;
+        detail.value = responseJson.results[0].formatted_address;
+        detail.radius = 50;
         this.setState({
           region: detail,
           loading: false,
