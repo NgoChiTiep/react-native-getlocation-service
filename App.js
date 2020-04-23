@@ -39,11 +39,12 @@ export default class App extends Component {
   }
 
 
-  updateLocation = (location) => {
-    console.log("--------------get distance")
-    console.log(location)
+  updateLocation = async (location) => {
+    console.log("this.state.listRegion")
+    console.log(this.state.listRegion)
     if (this.state.listRegion.length > 0) {
-      this.state.listRegion.forEach((item, i) => {
+      var list = [...this.state.listRegion]
+      await list.map((item, i) => {
         let distance = getDistance(
           { latitude: item.latitude, longitude: item.longitude },
           {
@@ -54,19 +55,34 @@ export default class App extends Component {
         console.log("distance")
         console.log(distance)
         if (distance < item.radius) {
-          let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
-            item.latitude +
-            '&long=' +
-            item.longitude;
-          fetch(url).then(data => {
-            console.log("respone")
-            console.log(data)
-          })
-            .catch(err => {
-
+          if (!item.flag) {
+            item.flag = true
+            let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
+              item.latitude +
+              '&long=' +
+              item.longitude;
+            fetch(url).then(data => {
+              console.log("respone call api")
+              console.log(data)
             })
+              .catch(err => {
+
+              })
+            return item
+          }
+
         }
+        else {
+          item.flag = false
+          return item
+        }
+        return item
       })
+      console.log("newList")
+      console.log(list)
+      // this.setState({
+      //   listRegion: newList
+      // })
     }
   }
   async configLocation() {
