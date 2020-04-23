@@ -32,8 +32,6 @@ import {
 import React, { Component } from 'react'
 import { PermissionsAndroid } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
-
-
 async function requestLocationPermission() {
   try {
     const granted = await PermissionsAndroid.request(
@@ -83,7 +81,7 @@ export default class App extends Component {
     }
   }
   componentDidMount = async () => {
-    //set up Notifications
+    console.log("22222222")
     RNSimpleNativeGeofencing.initNotification(
       {
         channel: {
@@ -130,6 +128,10 @@ export default class App extends Component {
   }
   startMonitoring(geofences) {
     RNSimpleNativeGeofencing.addGeofences(geofences, 3000000, this.fail);
+    RNSimpleNativeGeofencing.startMonitoring(err=>{
+      console.log("err111111111")
+      console.log(err)
+    })
     console.log("doneeee")
   }
 
@@ -222,7 +224,7 @@ export default class App extends Component {
         var detail = { ...this.state.region }
         detail.key = responseJson.results[0].place_id
         detail.value = responseJson.results[0].formatted_address
-        detail.radius = 1000
+        detail.radius = 50
         this.setState({
           region: detail,
           loading: false
