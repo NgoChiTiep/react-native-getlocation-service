@@ -6,8 +6,8 @@
  * @flow strict-local
  */
 console.disableYellowBox = true;
-import {getDistance, getPreciseDistance, getLatitude} from 'geolib';
-// import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
+import { getDistance, getPreciseDistance, getLatitude } from 'geolib';
+import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
 import AsyncStorage from '@react-native-community/async-storage';
 import {
   SafeAreaView,
@@ -20,6 +20,7 @@ import {
   Image,
   Dimensions,
   Button,
+  Platform,
 } from 'react-native';
 import { PermissionsAndroid } from "react-native";
 import React, { Component } from 'react'
@@ -31,16 +32,8 @@ export default class App extends Component {
     this.state = {
       hasGeoFence: false,
       region: {
-        latitude: 21.027763,
-        longitude: 105.83416,
-        latitudeDelta: 0.001,
-        longitudeDelta: 0.001,
       },
-      regionUser: {},
-      pickRegion: {},
       listRegion: [],
-      placeID: '',
-      stringRegion: '',
       loading: false,
     };
   }
@@ -77,7 +70,6 @@ export default class App extends Component {
     }
   }
   async configLocation() {
-    
     var listDefine = await AsyncStorage.getItem("define_region")
     console.log(JSON.parse(listDefine))
     if (listDefine) {
@@ -85,29 +77,22 @@ export default class App extends Component {
         listRegion: JSON.parse(listDefine)
       })
     }
-    // BackgroundGeolocation.getLocations((locations) => {
-    //   console.log("locations[0]")
-    //   console.log(locations[0])
-    //   var region = {
-    //     latitude: locations[0].latitude,
-    //     longitude: locations[0].longitude,
-    //     latitudeDelta: 0.001,
-    //     longitudeDelta: 0.001
-    //   }
-    //   this.setState({
-    //     region: region,
-    //     loading: false
-    //   })
-    // })
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        const location = JSON.stringify(position);
-        console.log("888888888888888")
-        console.log(location)
-      },
-      error => Alert.alert(error.message),
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
-    );
+
+    Geolocation.getCurrentPosition(res => {
+      var region = {
+        latitude: res.coords.latitude,
+        longitude: res.coords.longitude,
+        latitudeDelta: 0.001,
+        longitudeDelta: 0.001
+      }
+      this.setState({
+        region: region,
+        loading: false
+      })
+    }, err => {
+
+    });
+
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
       // stationaryRadius: 50,
@@ -180,22 +165,23 @@ export default class App extends Component {
 
     BackgroundGeolocation.on('background', () => {
       console.log('[INFO] App is in background');
-
-      BackgroundGeolocation.getLocations((locations) => {
-        this.updateLocation(locations[0])
-      }
-      );
+      Geolocation.getCurrentPosition(res => {
+        this.updateLocation(res.coords)
+      }, err => {
+      });
     });
-
-    BackgroundGeolocation.headlessTask(async (event) => {
-      if (event.name === 'location' ||
-        event.name === 'stationary') {
-        BackgroundGeolocation.getLocations((locations) => {
-          this.updateLocation(locations[0])
+    if (Platform.OS == "android") {
+      BackgroundGeolocation.headlessTask(async (event) => {
+        if (event.name === 'location' ||
+          event.name === 'stationary') {
+          Geolocation.getCurrentPosition(res => {
+            this.updateLocation(res.coords)
+          }, err => {
+          });
         }
-        );
-      }
-    });
+      });
+    }
+
     BackgroundGeolocation.on('foreground', () => {
       console.log('[INFO] App is in foreground');
     });
@@ -254,7 +240,7 @@ export default class App extends Component {
       listRegion,
     } = this.state;
     return (
-      <ScrollView style={{flexDirection: 'column', flex: 1}}>
+      <ScrollView style={{ flexDirection: 'column', flex: 1 }}>
         <StatusBar barStyle="dark-content" />
         {
           region.latitude &&
@@ -305,10 +291,10 @@ export default class App extends Component {
             }}>
             Move map for location
           </Text>
-          <Text style={{fontSize: 13, color: 'grey', marginBottom: 5}}>
+          <Text style={{ fontSize: 13, color: 'grey', marginBottom: 5 }}>
             Location
           </Text>
-          <Text style={{fontSize: 13, color: 'grey', marginBottom: 10}}>
+          <Text style={{ fontSize: 13, color: 'grey', marginBottom: 10 }}>
             {loading ? 'Indentifying location....' : this.state.region.value}
           </Text>
           <View
@@ -324,28 +310,6 @@ export default class App extends Component {
             color="#3976ff"
             disabled={loading ? true : false}
             onPress={this.chooseRegion}
-          />
-        </View>
-
-        <View style={styles.buttons}>
-          {hasGeoFence ? (
-            <Button
-              // onPress={stopMonitoring}
-              style={styles.button}
-              title="Stop Monitoring"
-            />
-          ) : (
-            <Button
-              onPress={() => this.startMonitoring(this.state.listRegion)}
-              style={styles.button}
-              title="Start Monitoring"
-            />
-          )}
-          <Button
-            // onPress={() => onDelete(id)}
-            style={styles.button}
-            color="red"
-            title="Delete"
           />
         </View>
       </ScrollView>
