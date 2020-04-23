@@ -114,32 +114,13 @@ export default class App extends Component {
       }
     );
     var listDefine = await AsyncStorage.getItem("define_region")
-    console.log("777777777777777777")
-    console.log(JSON.parse(define_region))
+    console.log("12321312")
+    console.log(JSON.parse(listDefine))
     if (listDefine) {
       this.setState({
-        listRegion: JSON.parse(define_region)
-      })
+        listRegion: JSON.parse(listDefine)
+      }, ()=> console.log(this.state.listRegion))
     }
-    // if (listDefine) {
-    //   var listGeo = JSON.parse(listDefine)
-    //   console.log("listGeo")
-    //   console.log(listGeo)
-    //   this.startMonitoring([{
-    //     key: "geoNum1",
-    //     latitude: 38.9204,
-    //     longitude: -77.0175,
-    //     radius: 200,
-    //     value: "yellow"
-    //   },
-    //   {
-    //     key: "geoNum2",
-    //     latitude: 38.9248,
-    //     longitude: -77.0258,
-    //     radius: 100,
-    //     value: "green"
-    //   },])
-    // }
     this.startMonitoring()
   }
   fail() {
@@ -175,34 +156,6 @@ export default class App extends Component {
   stopMonitoring() {
     RNSimpleNativeGeofencing.removeAllGeofences();
   }
-  // updateLocation = (location) => {
-  //   console.log("this.state.region")
-  //   console.log(this.state.region)
-  //   let distance = getDistance(
-  //     { latitude: location.latitude, longitude: location.longitude },
-
-  //     {
-  //       latitude: this.state.region.latitude,
-  //       longitude: this.state.region.longitude
-  //     },
-  //   );
-  //   console.log("distance")
-  //   console.log(distance)
-  //   if (distance < 100) {
-  //     let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
-  //       location.latitude +
-  //       '&long=' +
-  //       location.longitude;
-  //     fetch(url).then(data => {
-  //       console.log("respone")
-  //       console.log(data)
-  //     })
-  //       .catch(err => {
-
-  //       })
-  //   }
-  // }
-
 
   componentWillUnmount() {
     BackgroundGeolocation.removeAllListeners();
@@ -271,6 +224,8 @@ export default class App extends Component {
       listRegion: [...this.state.listRegion, this.state.region]
     }, async () => {
       var save = JSON.stringify(this.state.listRegion)
+      console.log("--------------------")
+      console.log(save)
       await AsyncStorage.setItem('define_region', save)
     })
   }
