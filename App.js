@@ -6,8 +6,8 @@
  * @flow strict-local
  */
 console.disableYellowBox = true;
-import { getDistance, getPreciseDistance, getLatitude } from 'geolib';
-import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
+import {getDistance, getPreciseDistance, getLatitude} from 'geolib';
+// import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
 import AsyncStorage from '@react-native-community/async-storage';
 import {
   SafeAreaView,
@@ -19,7 +19,7 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
-  Button
+  Button,
 } from 'react-native';
 import { PermissionsAndroid } from "react-native";
 import React, { Component } from 'react'
@@ -29,21 +29,20 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      hasGeoFence: false,
       region: {
+        latitude: 21.027763,
+        longitude: 105.83416,
+        latitudeDelta: 0.001,
+        longitudeDelta: 0.001,
       },
-      regionUser: {
-
-      },
-      pickRegion: {
-
-      },
-      listRegion: [
-
-      ],
-      placeID: "",
-      stringRegion: "",
-      loading: false
-    }
+      regionUser: {},
+      pickRegion: {},
+      listRegion: [],
+      placeID: '',
+      stringRegion: '',
+      loading: false,
+    };
   }
 
 
@@ -243,14 +242,19 @@ export default class App extends Component {
   }
 
   componentWillUnmount() {
-    BackgroundGeolocation.removeAllListeners();
+    // BackgroundGeolocation.removeAllListeners();
   }
   render() {
-    const width = Dimensions.get('window').width
-    const height = Dimensions.get('window').height
-    const { region, regionUser, loading, pickRegion, listRegion } = this.state
+    const width = Dimensions.get('window').width;
+    const height = Dimensions.get('window').height;
+    const {
+      region,
+      loading,
+      hasGeoFence,
+      listRegion,
+    } = this.state;
     return (
-      <ScrollView style={{ flexDirection: "column", flex: 1 }}>
+      <ScrollView style={{flexDirection: 'column', flex: 1}}>
         <StatusBar barStyle="dark-content" />
         {
           region.latitude &&
@@ -285,13 +289,36 @@ export default class App extends Component {
           </MapView>
         }
 
-        <View style={{ flex: 1, backgroundColor: "white", paddingHorizontal: 10, paddingVertical: 10 }}>
-          <Text style={{ fontWeight: "bold", fontSize: 15, color: "grey", marginBottom: 15 }}>Move map for location</Text>
-          <Text style={{ fontSize: 13, color: "grey", marginBottom: 5 }}>Location</Text>
-          <Text style={{ fontSize: 13, color: "grey", marginBottom: 10 }}>
-            {loading ?
-              "Indentifying location...." : this.state.region.value}</Text>
-          <View style={{ width: "100%", height: 0.7, backgroundColor: "grey", marginBottom: 10 }} />
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'white',
+            paddingHorizontal: 10,
+            paddingVertical: 10,
+          }}>
+          <Text
+            style={{
+              fontWeight: 'bold',
+              fontSize: 15,
+              color: 'grey',
+              marginBottom: 15,
+            }}>
+            Move map for location
+          </Text>
+          <Text style={{fontSize: 13, color: 'grey', marginBottom: 5}}>
+            Location
+          </Text>
+          <Text style={{fontSize: 13, color: 'grey', marginBottom: 10}}>
+            {loading ? 'Indentifying location....' : this.state.region.value}
+          </Text>
+          <View
+            style={{
+              width: '100%',
+              height: 0.7,
+              backgroundColor: 'grey',
+              marginBottom: 10,
+            }}
+          />
           <Button
             title="Pick this location"
             color="#3976ff"
@@ -299,14 +326,36 @@ export default class App extends Component {
             onPress={this.chooseRegion}
           />
         </View>
+
+        <View style={styles.buttons}>
+          {hasGeoFence ? (
+            <Button
+              // onPress={stopMonitoring}
+              style={styles.button}
+              title="Stop Monitoring"
+            />
+          ) : (
+            <Button
+              onPress={() => this.startMonitoring(this.state.listRegion)}
+              style={styles.button}
+              title="Start Monitoring"
+            />
+          )}
+          <Button
+            // onPress={() => onDelete(id)}
+            style={styles.button}
+            color="red"
+            title="Delete"
+          />
+        </View>
       </ScrollView>
-    )
+    );
   }
   setLoading = () => {
     this.setState({
-      loading: true
-    })
-  }
+      loading: true,
+    });
+  };
   chooseRegion = () => {
     this.setState({
       listRegion: [...this.state.listRegion, this.state.region]
@@ -331,10 +380,41 @@ export default class App extends Component {
         detail.radius = 100
         this.setState({
           region: detail,
-          loading: false
+          loading: false,
         });
       });
-  }
+  };
 }
 
-
+const styles = StyleSheet.create({
+  item: {
+    backgroundColor: '#fad7ff',
+    padding: 10,
+    marginTop: 8,
+    marginHorizontal: 16,
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
+  },
+  buttons: {
+    backgroundColor: '#ffa6fc',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 5,
+    marginBottom: 8,
+    marginHorizontal: 16,
+    borderBottomLeftRadius: 5,
+    borderBottomRightRadius: 5,
+  },
+  title: {
+    fontSize: 32,
+  },
+  button: {
+    alignSelf: 'center',
+  },
+  delete: {
+    color: 'red',
+  },
+  remind: {
+    color: 'blue',
+  },
+});
