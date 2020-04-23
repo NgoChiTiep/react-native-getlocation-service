@@ -19,6 +19,7 @@
 		2DCD954D1E0B4F2C00145EB5 /* rn_locationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* rn_locationTests.m */; };
 		9D467C990D5ECA95C0517E74 /* libPods-rn_location-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 46E1F26372441BB6EC698570 /* libPods-rn_location-tvOS.a */; };
 		AD668E3A7ECF8A5DA28482B4 /* libPods-rn_location-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 021777A099F2158EF3BFA254 /* libPods-rn_location-tvOSTests.a */; };
+		E628127F2451366600DA0E23 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = E628127E2451366600DA0E23 /* File.swift */; };
 		F7E948632BB101A6C103B9A7 /* libPods-rn_location-rn_locationTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1CE7763B4E8EBBCD8F68F360 /* libPods-rn_location-rn_locationTests.a */; };
 /* End PBXBuildFile section */
 
@@ -64,6 +65,8 @@
 		6D2519D7B6D0387FD6FD06F7 /* Pods-rn_location-rn_locationTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-rn_location-rn_locationTests.debug.xcconfig"; path = "Target Support Files/Pods-rn_location-rn_locationTests/Pods-rn_location-rn_locationTests.debug.xcconfig"; sourceTree = "<group>"; };
 		74A7D85694CFF9AE7399E3D4 /* Pods-rn_location-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-rn_location-tvOS.release.xcconfig"; path = "Target Support Files/Pods-rn_location-tvOS/Pods-rn_location-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 		CA2E6BF55AE286B8B9106BA8 /* Pods-rn_location-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-rn_location-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-rn_location-tvOSTests/Pods-rn_location-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
+		E628127D2451366500DA0E23 /* rn_location-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "rn_location-Bridging-Header.h"; sourceTree = "<group>"; };
+		E628127E2451366600DA0E23 /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 		FCCC76A41A236DD2F48A7732 /* Pods-rn_location.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-rn_location.debug.xcconfig"; path = "Target Support Files/Pods-rn_location/Pods-rn_location.debug.xcconfig"; sourceTree = "<group>"; };
@@ -147,6 +150,8 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				13B07FB11A68108700A75B9A /* LaunchScreen.xib */,
 				13B07FB71A68108700A75B9A /* main.m */,
+				E628127E2451366600DA0E23 /* File.swift */,
+				E628127D2451366500DA0E23 /* rn_location-Bridging-Header.h */,
 			);
 			name = rn_location;
 			sourceTree = "<group>";
@@ -208,6 +213,7 @@
 				00E356EA1AD99517003FC87E /* Sources */,
 				00E356EB1AD99517003FC87E /* Frameworks */,
 				00E356EC1AD99517003FC87E /* Resources */,
+				F8BC0471FD01DECD4513D6EE /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -229,6 +235,7 @@
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
+				ACF4702D7EB4235880775B43 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -433,6 +440,24 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		ACF4702D7EB4235880775B43 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-rn_location/Pods-rn_location-resources.sh",
+				"${PODS_ROOT}/GoogleMaps/Maps/Frameworks/GoogleMaps.framework/Resources/GoogleMaps.bundle",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleMaps.bundle",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-rn_location/Pods-rn_location-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		BB95FDAAFC6F037217D74859 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -475,6 +500,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		F8BC0471FD01DECD4513D6EE /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-rn_location-rn_locationTests/Pods-rn_location-rn_locationTests-resources.sh",
+				"${PODS_ROOT}/GoogleMaps/Maps/Frameworks/GoogleMaps.framework/Resources/GoogleMaps.bundle",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleMaps.bundle",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-rn_location-rn_locationTests/Pods-rn_location-rn_locationTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		FD10A7F022414F080027D42C /* Start Packager */ = {
@@ -531,6 +574,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
+				E628127F2451366600DA0E23 /* File.swift in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -584,6 +628,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 6D2519D7B6D0387FD6FD06F7 /* Pods-rn_location-rn_locationTests.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -607,6 +652,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 09BC3AA17942447590B46714 /* Pods-rn_location-rn_locationTests.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = rn_locationTests/Info.plist;
@@ -645,6 +691,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = rn_location;
+				SWIFT_OBJC_BRIDGING_HEADER = "rn_location-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -668,6 +715,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = rn_location;
+				SWIFT_OBJC_BRIDGING_HEADER = "rn_location-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
