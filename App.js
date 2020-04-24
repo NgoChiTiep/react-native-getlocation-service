@@ -9,8 +9,8 @@ console.disableYellowBox = true;
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
 import AsyncStorage from '@react-native-community/async-storage';
 import Geolocation from '@react-native-community/geolocation';
-import {getDistance} from 'geolib';
-import React, {Component} from 'react';
+import { getDistance } from 'geolib';
+import React, { Component } from 'react';
 import {
   Button,
   Dimensions,
@@ -24,7 +24,7 @@ import {
   View,
   Alert,
 } from 'react-native';
-import MapView, {Marker, Callout} from 'react-native-maps';
+import MapView, { Marker, Callout } from 'react-native-maps';
 import NotificationService from './NotificationService';
 
 const width = Dimensions.get('window').width;
@@ -37,7 +37,7 @@ export default class App extends Component {
       region: {},
       listRegion: [],
       loading: false,
-      buttonText: '',
+      buttonText: 'Stop Service',
     };
     this.notification = new NotificationService(this.onNotification);
   }
@@ -49,10 +49,12 @@ export default class App extends Component {
 
   updateLocation = async location => {
     var list = [...this.state.listRegion];
+    console.log("list")
+    console.log(list)
     if (list.length > 0) {
       await list.forEach((item, i) => {
         let distance = getDistance(
-          {latitude: item.latitude, longitude: item.longitude},
+          { latitude: item.latitude, longitude: item.longitude },
           {
             latitude: location.latitude,
             longitude: location.longitude,
@@ -111,7 +113,7 @@ export default class App extends Component {
           loading: false,
         });
       },
-      err => {},
+      err => { },
     );
 
     BackgroundGeolocation.configure({
@@ -206,7 +208,7 @@ export default class App extends Component {
         res => {
           this.updateLocation(res.coords);
         },
-        err => {},
+        err => { },
       );
     });
     if (Platform.OS == 'android') {
@@ -216,7 +218,7 @@ export default class App extends Component {
             res => {
               this.updateLocation(res.coords);
             },
-            err => {},
+            err => { },
           );
         }
       });
@@ -239,31 +241,13 @@ export default class App extends Component {
       console.log('[INFO] App needs to authorize the http requests');
     });
 
+    
     BackgroundGeolocation.checkStatus(status => {
-      console.log(
-        '[INFO] BackgroundGeolocation service is running',
-        status.isRunning,
-      );
-      console.log(
-        '[INFO] BackgroundGeolocation services enabled',
-        status.locationServicesEnabled,
-      );
-      console.log(
-        '[INFO] BackgroundGeolocation auth status: ' + status.authorization,
-      );
-
-      if (status.isRunning) {
-        this.setState({
-          buttonText: 'Stop Service',
-        });
-      } else {
-        this.setState({
-          buttonText: 'Start Service',
-        });
-      }
-
+      console.log('[INFO] BackgroundGeolocation service is running', status.isRunning);
+      console.log('[INFO] BackgroundGeolocation services enabled', status.locationServicesEnabled);
+      console.log('[INFO] BackgroundGeolocation auth status: ' + status.authorization);
       // you don't need to check status before start (this is just the example)
-      // BackgroundGeolocation.start(); //triggers start on start event
+      BackgroundGeolocation.start(); //triggers start on start event
     });
   }
 
@@ -291,13 +275,13 @@ export default class App extends Component {
     BackgroundGeolocation.removeAllListeners();
   }
   render() {
-    const {region, loading, buttonText, listRegion} = this.state;
+    const { region, loading, buttonText, listRegion } = this.state;
     return (
-      <ScrollView style={{flexDirection: 'column', flex: 1}}>
+      <ScrollView style={{ flexDirection: 'column', flex: 1 }}>
         <StatusBar barStyle="dark-content" />
         {region.latitude && (
           <MapView
-            style={{width: width, height: height * 0.7}}
+            style={{ width: width, height: height * 0.7 }}
             initialRegion={region}
             onRegionChangeComplete={this.onRegionChange}
             showsUserLocation={true}>
@@ -318,7 +302,7 @@ export default class App extends Component {
                   }}
                   draggable>
                   <Image
-                    style={{width: 40, height: 40}}
+                    style={{ width: 40, height: 40 }}
                     resizeMode="contain"
                     source={require('./assets/location.png')}
                   />
@@ -326,21 +310,18 @@ export default class App extends Component {
                     tooltip={true}
                     style={styles.makerInfo}
                     onPress={this.removeMarker(item)}>
+
+                    <Text
+                      style={{ fontSize: 14, color: 'white', marginBottom: 10 }}>
+                      {item.value}
+                    </Text>
                     <View
-                      style={{
-                        flex: 1,
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                      }}>
+                      style={styles.makerInfoButton}
+                    >
                       <Text
-                        style={{fontSize: 14, color: 'grey', marginBottom: 10}}>
-                        {item.value}
+                        style={{ fontSize: 14, color: '#D85A4B' }}>
+                        Remove
                       </Text>
-                      <Button
-                        style={styles.makerInfoButton}
-                        title="Remove"
-                        onPress={this.removeMarker}
-                      />
                     </View>
                   </Callout>
                 </Marker>
@@ -364,10 +345,10 @@ export default class App extends Component {
             }}>
             Move map for location
           </Text>
-          <Text style={{fontSize: 13, color: 'grey', marginBottom: 5}}>
+          <Text style={{ fontSize: 13, color: 'grey', marginBottom: 5 }}>
             Location
           </Text>
-          <Text style={{fontSize: 13, color: 'grey', marginBottom: 10}}>
+          <Text style={{ fontSize: 13, color: 'grey', marginBottom: 10 }}>
             {loading ? 'Indentifying location....' : this.state.region.value}
           </Text>
           <View
@@ -385,7 +366,7 @@ export default class App extends Component {
             disabled={loading ? true : false}
             onPress={this.chooseRegion}
           />
-          <View style={{height: 20}} />
+          <View style={{ height: 20 }} />
 
           <Button
             title={buttonText}
@@ -397,8 +378,6 @@ export default class App extends Component {
     );
   }
   removeMarker = item => () => {
-    console.log('1111111111');
-    console.log(item);
     var newList = this.state.listRegion.filter(obj => obj.key !== item.key);
     this.setState(
       {
@@ -476,9 +455,9 @@ export default class App extends Component {
   fetchAddress = () => {
     fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
-        this.state.region.latitude
+      this.state.region.latitude
       },${
-        this.state.region.longitude
+      this.state.region.longitude
       }&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`,
     )
       .then(response => response.json())
@@ -532,17 +511,22 @@ const styles = StyleSheet.create({
     color: 'blue',
   },
   makerInfo: {
-    padding: 20,
-    backgroundColor: 'white',
-    height: 100,
-    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderColor: "red",
+    borderWidth: 1,
+    backgroundColor: '#556080',
+    // height: 100,
+    borderRadius: 50,
     width: width * 0.9,
   },
   makerInfoButton: {
-    width: 100,
-    height: 30,
+    paddingVertical: 10,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: 10,
-    bottom: 3,
-    position: 'absolute',
+    backgroundColor: "white"
+    // position: 'absolute',
   },
 });
