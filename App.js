@@ -358,17 +358,25 @@ export default class App extends Component {
           <View  style={{height:20}}/>
             
           <Button
-            title={'Local Notification'}
-            onPress={() => {
-              this.notification.localNotification(
-                'Local Notification',
-                'Test Notification Message',
-              );
-            }}
+            title={'Stop service'}
+            color={"#FD3376"}
+            onPress={() => this.stopService()}
           />
         </View>
       </ScrollView>
     );
+  }
+  stopService(){
+    BackgroundGeolocation.checkStatus(status => {
+      console.log('[INFO] BackgroundGeolocation service is running', status.isRunning);
+      console.log('[INFO] BackgroundGeolocation services enabled', status.locationServicesEnabled);
+      console.log('[INFO] BackgroundGeolocation auth status: ' + status.authorization);
+
+      // you don't need to check status before start (this is just the example)
+      if (status.isRunning) {
+        BackgroundGeolocation.stop(); //triggers start on start event
+      }
+    });
   }
   setLoading = () => {
     this.setState({
