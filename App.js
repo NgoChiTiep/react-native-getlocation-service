@@ -9,8 +9,8 @@ console.disableYellowBox = true;
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
 import AsyncStorage from '@react-native-community/async-storage';
 import Geolocation from '@react-native-community/geolocation';
-import { getDistance } from 'geolib';
-import React, { Component } from 'react';
+import {getDistance} from 'geolib';
+import React, {Component} from 'react';
 import {
   Button,
   Dimensions,
@@ -24,9 +24,11 @@ import {
   View,
   Alert,
 } from 'react-native';
-import MapView, { Marker, Callout } from 'react-native-maps';
+import MapView, {Marker, Callout} from 'react-native-maps';
 import NotificationService from './NotificationService';
 
+const width = Dimensions.get('window').width;
+const height = Dimensions.get('window').height;
 export default class App extends Component {
   constructor(props) {
     super(props);
@@ -50,7 +52,7 @@ export default class App extends Component {
     if (list.length > 0) {
       await list.forEach((item, i) => {
         let distance = getDistance(
-          { latitude: item.latitude, longitude: item.longitude },
+          {latitude: item.latitude, longitude: item.longitude},
           {
             latitude: location.latitude,
             longitude: location.longitude,
@@ -109,7 +111,7 @@ export default class App extends Component {
           loading: false,
         });
       },
-      err => { },
+      err => {},
     );
 
     BackgroundGeolocation.configure({
@@ -204,7 +206,7 @@ export default class App extends Component {
         res => {
           this.updateLocation(res.coords);
         },
-        err => { },
+        err => {},
       );
     });
     if (Platform.OS == 'android') {
@@ -214,7 +216,7 @@ export default class App extends Component {
             res => {
               this.updateLocation(res.coords);
             },
-            err => { },
+            err => {},
           );
         }
       });
@@ -265,7 +267,6 @@ export default class App extends Component {
     });
   }
 
-
   async componentDidMount() {
     if (Platform.OS === 'android') {
       const granted = await PermissionsAndroid.request(
@@ -290,15 +291,13 @@ export default class App extends Component {
     BackgroundGeolocation.removeAllListeners();
   }
   render() {
-    const width = Dimensions.get('window').width;
-    const height = Dimensions.get('window').height;
-    const { region, loading, buttonText, listRegion } = this.state;
+    const {region, loading, buttonText, listRegion} = this.state;
     return (
-      <ScrollView style={{ flexDirection: 'column', flex: 1 }}>
+      <ScrollView style={{flexDirection: 'column', flex: 1}}>
         <StatusBar barStyle="dark-content" />
         {region.latitude && (
           <MapView
-            style={{ width: width, height: height * 0.7 }}
+            style={{width: width, height: height * 0.7}}
             initialRegion={region}
             onRegionChangeComplete={this.onRegionChange}
             showsUserLocation={true}>
@@ -319,22 +318,33 @@ export default class App extends Component {
                   }}
                   draggable>
                   <Image
-                    style={{ width: 40, height: 40 }}
+                    style={{width: 40, height: 40}}
                     resizeMode="contain"
                     source={require('./assets/location.png')}
                   />
-                  <Callout tooltip={true} style={{ backgroundColor: "white", width: width * 0.8, height: 100, borderRadius: 10 }} onPress={this.removeMarker(item)}>
-                    {/* <View style={{ backgroundColor: "white", width: width*0.8, height: 100, borderRadius: 10 }}> */}
-                    <Text>{item.value}</Text>
-                    <Button
-                      title="Remove"
-                      onPress={this.removeMarker}
-                    />
-                    {/* </View> */}
+                  <Callout
+                    tooltip={true}
+                    style={styles.makerInfo}
+                    onPress={this.removeMarker(item)}>
+                    <View
+                      style={{
+                        flex: 1,
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                      }}>
+                      <Text
+                        style={{fontSize: 14, color: 'grey', marginBottom: 10}}>
+                        {item.value}
+                      </Text>
+                      <Button
+                        style={styles.makerInfoButton}
+                        title="Remove"
+                        onPress={this.removeMarker}
+                      />
+                    </View>
                   </Callout>
                 </Marker>
               ))}
-
           </MapView>
         )}
 
@@ -354,10 +364,10 @@ export default class App extends Component {
             }}>
             Move map for location
           </Text>
-          <Text style={{ fontSize: 13, color: 'grey', marginBottom: 5 }}>
+          <Text style={{fontSize: 13, color: 'grey', marginBottom: 5}}>
             Location
           </Text>
-          <Text style={{ fontSize: 13, color: 'grey', marginBottom: 10 }}>
+          <Text style={{fontSize: 13, color: 'grey', marginBottom: 10}}>
             {loading ? 'Indentifying location....' : this.state.region.value}
           </Text>
           <View
@@ -375,7 +385,7 @@ export default class App extends Component {
             disabled={loading ? true : false}
             onPress={this.chooseRegion}
           />
-          <View style={{ height: 20 }} />
+          <View style={{height: 20}} />
 
           <Button
             title={buttonText}
@@ -386,16 +396,21 @@ export default class App extends Component {
       </ScrollView>
     );
   }
-  removeMarker = (item) => () => {
-    console.log("1111111111")
-    console.log(item)
-    var newList = this.state.listRegion.filter(obj => obj.key !== item.key)
-    this.setState({
-      listRegion: newList
-    }, () => AsyncStorage.setItem('define_region', JSON.stringify(this.state.listRegion))
-    )
-  }
-
+  removeMarker = item => () => {
+    console.log('1111111111');
+    console.log(item);
+    var newList = this.state.listRegion.filter(obj => obj.key !== item.key);
+    this.setState(
+      {
+        listRegion: newList,
+      },
+      () =>
+        AsyncStorage.setItem(
+          'define_region',
+          JSON.stringify(this.state.listRegion),
+        ),
+    );
+  };
 
   stopService() {
     BackgroundGeolocation.checkStatus(status => {
@@ -461,9 +476,9 @@ export default class App extends Component {
   fetchAddress = () => {
     fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
-      this.state.region.latitude
+        this.state.region.latitude
       },${
-      this.state.region.longitude
+        this.state.region.longitude
       }&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`,
     )
       .then(response => response.json())
@@ -515,5 +530,19 @@ const styles = StyleSheet.create({
   },
   remind: {
     color: 'blue',
+  },
+  makerInfo: {
+    padding: 20,
+    backgroundColor: 'white',
+    height: 100,
+    borderRadius: 10,
+    width: width * 0.9,
+  },
+  makerInfoButton: {
+    width: 100,
+    height: 30,
+    borderRadius: 10,
+    bottom: 3,
+    position: 'absolute',
   },
 });
