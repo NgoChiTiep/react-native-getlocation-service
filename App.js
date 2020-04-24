@@ -40,10 +40,8 @@ export default class App extends Component {
 
 
   updateLocation = async (location) => {
-    console.log("this.state.listRegion")
-    console.log(this.state.listRegion)
-    if (this.state.listRegion.length > 0) {
-      var list = [...this.state.listRegion]
+    var list = [...this.state.listRegion]
+    if (list.length > 0) {
       await list.map((item, i) => {
         let distance = getDistance(
           { latitude: item.latitude, longitude: item.longitude },
@@ -54,9 +52,9 @@ export default class App extends Component {
         );
         console.log("distance")
         console.log(distance)
+        console.log(item.radius)
         if (distance < item.radius) {
           if (!item.flag) {
-            item.flag = true
             let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
               item.latitude +
               '&long=' +
@@ -68,21 +66,18 @@ export default class App extends Component {
               .catch(err => {
 
               })
-            return item
+            item.flag = true;
+            console.log("-----------------")
+            console.log(item)
           }
-
         }
         else {
           item.flag = false
-          return item
         }
-        return item
       })
-      console.log("newList")
-      console.log(list)
-      // this.setState({
-      //   listRegion: newList
-      // })
+      this.setState({
+        listRegion: list
+      })
     }
   }
   async configLocation() {
@@ -112,10 +107,11 @@ export default class App extends Component {
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
       // stationaryRadius: 50,
-      // distanceFilter: 50,
+      distanceFilter: 100,
       notificationTitle: 'Background tracking',
       notificationText: 'enabled',
-      debug: true,
+      debug: false,
+      notificationsEnabled: false,
       startOnBoot: true,
       stopOnTerminate: false,
       startForeground: true,
@@ -240,11 +236,13 @@ export default class App extends Component {
         console.log("location permission denied")
       }
     }
-
+    else {
+      this.configLocation()
+    }
   }
 
   componentWillUnmount() {
-    // BackgroundGeolocation.removeAllListeners();
+    BackgroundGeolocation.removeAllListeners();
   }
   render() {
     const width = Dimensions.get('window').width;
@@ -337,8 +335,17 @@ export default class App extends Component {
     });
   };
   chooseRegion = () => {
+    var detail = {
+      latitude: this.state.region.latitude,
+      longitude: this.state.region.longitude,
+      key: this.state.region.key,
+      value: this.state.region.value,
+      radius: this.state.region.radius,
+      latitudeDelta: this.state.region.latitudeDelta,
+      longitudeDelta: this.state.region.longitudeDelta
+    }
     this.setState({
-      listRegion: [...this.state.listRegion, this.state.region]
+      listRegion: [...this.state.listRegion, detail]
     }, async () => {
       var save = JSON.stringify(this.state.listRegion)
       await AsyncStorage.setItem('define_region', save)
@@ -354,10 +361,15 @@ export default class App extends Component {
     fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${this.state.region.latitude},${this.state.region.longitude}&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`)
       .then((response) => response.json())
       .then((responseJson) => {
-        var detail = { ...this.state.region }
-        detail.key = responseJson.results[0].place_id
-        detail.value = responseJson.results[0].formatted_address
-        detail.radius = 100
+        var detail = {
+          latitude: this.state.region.latitude,
+          longitude: this.state.region.longitude,
+          key: responseJson.results[0].place_id,
+          value: responseJson.results[0].formatted_address,
+          radius: 100,
+          latitudeDelta: 0.001,
+          longitudeDelta: 0.001
+        }
         this.setState({
           region: detail,
           loading: false,
