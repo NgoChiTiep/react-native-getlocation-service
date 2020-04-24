@@ -35,9 +35,9 @@ export default class App extends Component {
       region: {},
       listRegion: [],
       loading: false,
+      buttonText: '',
     };
     this.notification = new NotificationService(this.onNotification);
-
   }
 
   //Gets called when the notification comes in
@@ -45,8 +45,8 @@ export default class App extends Component {
     Alert.alert(notif.title, notif.message);
   };
 
-  updateLocation = async (location) => {
-    var list = [...this.state.listRegion]
+  updateLocation = async location => {
+    var list = [...this.state.listRegion];
     if (list.length > 0) {
       await list.map((item, i) => {
         let distance = getDistance(
@@ -56,9 +56,9 @@ export default class App extends Component {
             longitude: location.longitude,
           },
         );
-        console.log("distance")
-        console.log(distance)
-        console.log(item.radius)
+        console.log('distance');
+        console.log(distance);
+        console.log(item.radius);
         if (distance < item.radius) {
           if (!item.flag) {
             // let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
@@ -75,17 +75,16 @@ export default class App extends Component {
               `Bạn đang ở gần ${item.value}`,
             );
             item.flag = true;
-            console.log("-----------------")
-            console.log(item)
+            console.log('-----------------');
+            console.log(item);
           }
+        } else {
+          item.flag = false;
         }
-        else {
-          item.flag = false
-        }
-      })
+      });
       this.setState({
-        listRegion: list
-      })
+        listRegion: list,
+      });
     }
   };
   async configLocation() {
@@ -251,8 +250,18 @@ export default class App extends Component {
         '[INFO] BackgroundGeolocation auth status: ' + status.authorization,
       );
 
+      if (status.isRunning) {
+        this.setState({
+          buttonText: 'Stop Service',
+        });
+      } else {
+        this.setState({
+          buttonText: 'Start Service',
+        });
+      }
+
       // you don't need to check status before start (this is just the example)
-      BackgroundGeolocation.start(); //triggers start on start event
+      // BackgroundGeolocation.start(); //triggers start on start event
     });
   }
   async componentDidMount() {
@@ -270,9 +279,8 @@ export default class App extends Component {
       } else {
         console.log('location permission denied');
       }
-    }
-    else {
-      this.configLocation()
+    } else {
+      this.configLocation();
     }
   }
 
@@ -282,7 +290,7 @@ export default class App extends Component {
   render() {
     const width = Dimensions.get('window').width;
     const height = Dimensions.get('window').height;
-    const {region, loading, hasGeoFence, listRegion} = this.state;
+    const {region, loading, buttonText, listRegion} = this.state;
     return (
       <ScrollView style={{flexDirection: 'column', flex: 1}}>
         <StatusBar barStyle="dark-content" />
@@ -348,33 +356,48 @@ export default class App extends Component {
               marginBottom: 10,
             }}
           />
-          
+
           <Button
             title="Pick this location"
             color="#3976ff"
             disabled={loading ? true : false}
             onPress={this.chooseRegion}
           />
-          <View  style={{height:20}}/>
-            
+          <View style={{height: 20}} />
+
           <Button
-            title={'Stop service'}
-            color={"#FD3376"}
+            title={buttonText}
+            color={'#FD3376'}
             onPress={() => this.stopService()}
           />
         </View>
       </ScrollView>
     );
   }
-  stopService(){
+  stopService() {
     BackgroundGeolocation.checkStatus(status => {
-      console.log('[INFO] BackgroundGeolocation service is running', status.isRunning);
-      console.log('[INFO] BackgroundGeolocation services enabled', status.locationServicesEnabled);
-      console.log('[INFO] BackgroundGeolocation auth status: ' + status.authorization);
+      console.log(
+        '[INFO] BackgroundGeolocation service is running',
+        status.isRunning,
+      );
+      console.log(
+        '[INFO] BackgroundGeolocation services enabled',
+        status.locationServicesEnabled,
+      );
+      console.log(
+        '[INFO] BackgroundGeolocation auth status: ' + status.authorization,
+      );
 
-      // you don't need to check status before start (this is just the example)
       if (status.isRunning) {
-        BackgroundGeolocation.stop(); //triggers start on start event
+        BackgroundGeolocation.stop();
+        this.setState({
+          buttonText: 'Start Service',
+        });
+      } else {
+        BackgroundGeolocation.start();
+        this.setState({
+          buttonText: 'Stop Service',
+        });
       }
     });
   }
@@ -391,25 +414,37 @@ export default class App extends Component {
       value: this.state.region.value,
       radius: this.state.region.radius,
       latitudeDelta: this.state.region.latitudeDelta,
-      longitudeDelta: this.state.region.longitudeDelta
-    }
-    this.setState({
-      listRegion: [...this.state.listRegion, detail]
-    }, async () => {
-      var save = JSON.stringify(this.state.listRegion)
-      await AsyncStorage.setItem('define_region', save)
-    })
-  }
-  onRegionChange = (region) => {
-    this.setState({
-      region: region,
-      loading: true
-    }, () => this.fetchAddress())
-  }
+      longitudeDelta: this.state.region.longitudeDelta,
+    };
+    this.setState(
+      {
+        listRegion: [...this.state.listRegion, detail],
+      },
+      async () => {
+        var save = JSON.stringify(this.state.listRegion);
+        await AsyncStorage.setItem('define_region', save);
+      },
+    );
+  };
+  onRegionChange = region => {
+    this.setState(
+      {
+        region: region,
+        loading: true,
+      },
+      () => this.fetchAddress(),
+    );
+  };
   fetchAddress = () => {
-    fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${this.state.region.latitude},${this.state.region.longitude}&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`)
-      .then((response) => response.json())
-      .then((responseJson) => {
+    fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
+        this.state.region.latitude
+      },${
+        this.state.region.longitude
+      }&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`,
+    )
+      .then(response => response.json())
+      .then(responseJson => {
         var detail = {
           latitude: this.state.region.latitude,
           longitude: this.state.region.longitude,
@@ -417,8 +452,8 @@ export default class App extends Component {
           value: responseJson.results[0].formatted_address,
           radius: 100,
           latitudeDelta: 0.001,
-          longitudeDelta: 0.001
-        }
+          longitudeDelta: 0.001,
+        };
         this.setState({
           region: detail,
           loading: false,
