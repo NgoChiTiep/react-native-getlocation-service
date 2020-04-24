@@ -48,7 +48,7 @@ export default class App extends Component {
   updateLocation = async location => {
     var list = [...this.state.listRegion];
     if (list.length > 0) {
-      await list.map((item, i) => {
+      await list.forEach((item, i) => {
         let distance = getDistance(
           { latitude: item.latitude, longitude: item.longitude },
           {
@@ -323,13 +323,13 @@ export default class App extends Component {
                     resizeMode="contain"
                     source={require('./assets/location.png')}
                   />
-                  <Callout tooltip={true}  style={{ backgroundColor: "white", width: width*0.8, height: 100, borderRadius: 10 }} onPress={null}>
+                  <Callout tooltip={true} style={{ backgroundColor: "white", width: width * 0.8, height: 100, borderRadius: 10 }} onPress={this.removeMarker(item)}>
                     {/* <View style={{ backgroundColor: "white", width: width*0.8, height: 100, borderRadius: 10 }}> */}
-                      <Text>{item.value}</Text>
-                      <Button
-                        title="Remove"
-                        onPress={this.removeMarker}
-                      />
+                    <Text>{item.value}</Text>
+                    <Button
+                      title="Remove"
+                      onPress={this.removeMarker}
+                    />
                     {/* </View> */}
                   </Callout>
                 </Marker>
@@ -386,9 +386,17 @@ export default class App extends Component {
       </ScrollView>
     );
   }
-  removeMarker(){
-    
+  removeMarker = (item) => () => {
+    console.log("1111111111")
+    console.log(item)
+    var newList = this.state.listRegion.filter(obj => obj.key !== item.key)
+    this.setState({
+      listRegion: newList
+    }, () => AsyncStorage.setItem('define_region', JSON.stringify(this.state.listRegion))
+    )
   }
+
+
   stopService() {
     BackgroundGeolocation.checkStatus(status => {
       console.log(
