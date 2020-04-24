@@ -73,8 +73,8 @@ export default class App extends Component {
             //     console.log(data);
             //   })
             this.notification.localNotification(
-              'Thông báo',
-              `Bạn đang ở gần ${item.value}`,
+              'Notice',
+              `You are nearby ${item.value}`,
             );
             item.flag = true;
             console.log('-----------------');
