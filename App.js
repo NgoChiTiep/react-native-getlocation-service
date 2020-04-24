@@ -6,48 +6,54 @@
  * @flow strict-local
  */
 console.disableYellowBox = true;
-import { getDistance, getPreciseDistance, getLatitude } from 'geolib';
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
 import AsyncStorage from '@react-native-community/async-storage';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-  Button,
-  Platform,
-} from 'react-native';
-import { PermissionsAndroid } from "react-native";
-import React, { Component } from 'react'
-import MapView, { Marker, Polyline } from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
+import {getDistance} from 'geolib';
+import React, {Component} from 'react';
+import {
+  Button,
+  Dimensions,
+  Image,
+  PermissionsAndroid,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+  Alert,
+} from 'react-native';
+import MapView, {Marker} from 'react-native-maps';
+import NotificationService from './NotificationService';
+
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       hasGeoFence: false,
-      region: {
-      },
+      region: {},
       listRegion: [],
       loading: false,
     };
+    this.notification = new NotificationService(this.onNotification);
+
   }
 
+  //Gets called when the notification comes in
+  onNotification = notif => {
+    Alert.alert(notif.title, notif.message);
+  };
 
   updateLocation = async (location) => {
     var list = [...this.state.listRegion]
     if (list.length > 0) {
       await list.map((item, i) => {
         let distance = getDistance(
-          { latitude: item.latitude, longitude: item.longitude },
+          {latitude: item.latitude, longitude: item.longitude},
           {
             latitude: location.latitude,
-            longitude: location.longitude
+            longitude: location.longitude,
           },
         );
         console.log("distance")
@@ -55,17 +61,19 @@ export default class App extends Component {
         console.log(item.radius)
         if (distance < item.radius) {
           if (!item.flag) {
-            let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
-              item.latitude +
-              '&long=' +
-              item.longitude;
-            fetch(url).then(data => {
-              console.log("respone call api")
-              console.log(data)
-            })
-              .catch(err => {
-
-              })
+            // let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
+            //   item.latitude +
+            //   '&long=' +
+            //   item.longitude;
+            // fetch(url)
+            //   .then(data => {
+            //     console.log('respone call api');
+            //     console.log(data);
+            //   })
+            this.notification.localNotification(
+              'Thông báo',
+              `Bạn đang ở gần ${item.value}`,
+            );
             item.flag = true;
             console.log("-----------------")
             console.log(item)
@@ -79,30 +87,31 @@ export default class App extends Component {
         listRegion: list
       })
     }
-  }
+  };
   async configLocation() {
-    var listDefine = await AsyncStorage.getItem("define_region")
-    console.log(JSON.parse(listDefine))
+    var listDefine = await AsyncStorage.getItem('define_region');
+    console.log(JSON.parse(listDefine));
     if (listDefine) {
       this.setState({
-        listRegion: JSON.parse(listDefine)
-      })
+        listRegion: JSON.parse(listDefine),
+      });
     }
 
-    Geolocation.getCurrentPosition(res => {
-      var region = {
-        latitude: res.coords.latitude,
-        longitude: res.coords.longitude,
-        latitudeDelta: 0.001,
-        longitudeDelta: 0.001
-      }
-      this.setState({
-        region: region,
-        loading: false
-      })
-    }, err => {
-
-    });
+    Geolocation.getCurrentPosition(
+      res => {
+        var region = {
+          latitude: res.coords.latitude,
+          longitude: res.coords.longitude,
+          latitudeDelta: 0.001,
+          longitudeDelta: 0.001,
+        };
+        this.setState({
+          region: region,
+          loading: false,
+        });
+      },
+      err => {},
+    );
 
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
@@ -122,23 +131,22 @@ export default class App extends Component {
       stopOnStillActivity: false,
       url: 'http://192.168.81.15:3000/location',
       httpHeaders: {
-        'X-FOO': 'bar'
+        'X-FOO': 'bar',
       },
       // customize post properties
       postTemplate: {
         lat: '@latitude',
         lon: '@longitude',
-        foo: 'bar' // you can also add your own properties
-      }
+        foo: 'bar', // you can also add your own properties
+      },
     });
 
-    BackgroundGeolocation.on('location', (location) => {
-      this.updateLocation(location)
+    BackgroundGeolocation.on('location', location => {
+      this.updateLocation(location);
       // handle your locations here
       // to perform long running operation on iOS
       // you need to create background task
       BackgroundGeolocation.startTask(taskKey => {
-
         // execute long running task
         // eg. ajax post location
         // IMPORTANT: task has to be ended by endTask
@@ -146,12 +154,12 @@ export default class App extends Component {
       });
     });
 
-    BackgroundGeolocation.on('stationary', (stationaryLocation) => {
+    BackgroundGeolocation.on('stationary', stationaryLocation => {
       // handle stationary locations here
       Actions.sendLocation(stationaryLocation);
     });
 
-    BackgroundGeolocation.on('error', (error) => {
+    BackgroundGeolocation.on('error', error => {
       console.log('[ERROR] BackgroundGeolocation error:', error);
     });
 
@@ -163,33 +171,52 @@ export default class App extends Component {
       console.log('[INFO] BackgroundGeolocation service has been stopped');
     });
 
-    BackgroundGeolocation.on('authorization', (status) => {
-      console.log('[INFO] BackgroundGeolocation authorization status: ' + status);
+    BackgroundGeolocation.on('authorization', status => {
+      console.log(
+        '[INFO] BackgroundGeolocation authorization status: ' + status,
+      );
       if (status !== BackgroundGeolocation.AUTHORIZED) {
         // we need to set delay or otherwise alert may not be shown
-        setTimeout(() =>
-          Alert.alert('App requires location tracking permission', 'Would you like to open app settings?', [
-            { text: 'Yes', onPress: () => BackgroundGeolocation.showAppSettings() },
-            { text: 'No', onPress: () => console.log('No Pressed'), style: 'cancel' }
-          ]), 1000);
+        setTimeout(
+          () =>
+            Alert.alert(
+              'App requires location tracking permission',
+              'Would you like to open app settings?',
+              [
+                {
+                  text: 'Yes',
+                  onPress: () => BackgroundGeolocation.showAppSettings(),
+                },
+                {
+                  text: 'No',
+                  onPress: () => console.log('No Pressed'),
+                  style: 'cancel',
+                },
+              ],
+            ),
+          1000,
+        );
       }
     });
 
     BackgroundGeolocation.on('background', () => {
       console.log('[INFO] App is in background');
-      Geolocation.getCurrentPosition(res => {
-        this.updateLocation(res.coords)
-      }, err => {
-      });
+      Geolocation.getCurrentPosition(
+        res => {
+          this.updateLocation(res.coords);
+        },
+        err => {},
+      );
     });
-    if (Platform.OS == "android") {
-      BackgroundGeolocation.headlessTask(async (event) => {
-        if (event.name === 'location' ||
-          event.name === 'stationary') {
-          Geolocation.getCurrentPosition(res => {
-            this.updateLocation(res.coords)
-          }, err => {
-          });
+    if (Platform.OS == 'android') {
+      BackgroundGeolocation.headlessTask(async event => {
+        if (event.name === 'location' || event.name === 'stationary') {
+          Geolocation.getCurrentPosition(
+            res => {
+              this.updateLocation(res.coords);
+            },
+            err => {},
+          );
         }
       });
     }
@@ -212,9 +239,17 @@ export default class App extends Component {
     });
 
     BackgroundGeolocation.checkStatus(status => {
-      console.log('[INFO] BackgroundGeolocation service is running', status.isRunning);
-      console.log('[INFO] BackgroundGeolocation services enabled', status.locationServicesEnabled);
-      console.log('[INFO] BackgroundGeolocation auth status: ' + status.authorization);
+      console.log(
+        '[INFO] BackgroundGeolocation service is running',
+        status.isRunning,
+      );
+      console.log(
+        '[INFO] BackgroundGeolocation services enabled',
+        status.locationServicesEnabled,
+      );
+      console.log(
+        '[INFO] BackgroundGeolocation auth status: ' + status.authorization,
+      );
 
       // you don't need to check status before start (this is just the example)
       BackgroundGeolocation.start(); //triggers start on start event
@@ -225,15 +260,15 @@ export default class App extends Component {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         {
-          'title': 'OEV App',
-          'message': 'OEV App access to your location '
-        }
-      )
+          title: 'OEV App',
+          message: 'OEV App access to your location ',
+        },
+      );
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        this.configLocation()
-        console.log("You can use the location")
+        this.configLocation();
+        console.log('You can use the location');
       } else {
-        console.log("location permission denied")
+        console.log('location permission denied');
       }
     }
     else {
@@ -247,47 +282,41 @@ export default class App extends Component {
   render() {
     const width = Dimensions.get('window').width;
     const height = Dimensions.get('window').height;
-    const {
-      region,
-      loading,
-      hasGeoFence,
-      listRegion,
-    } = this.state;
+    const {region, loading, hasGeoFence, listRegion} = this.state;
     return (
-      <ScrollView style={{ flexDirection: 'column', flex: 1 }}>
+      <ScrollView style={{flexDirection: 'column', flex: 1}}>
         <StatusBar barStyle="dark-content" />
-        {
-          region.latitude &&
+        {region.latitude && (
           <MapView
-            style={{ width: width, height: height * 0.7 }}
+            style={{width: width, height: height * 0.7}}
             initialRegion={region}
             onRegionChangeComplete={this.onRegionChange}
-            showsUserLocation={true}
-          >
+            showsUserLocation={true}>
             <Marker
               coordinate={{
-                "latitude": this.state.region.latitude,
-                "longitude": this.state.region.longitude
+                latitude: this.state.region.latitude,
+                longitude: this.state.region.longitude,
               }}
               draggable
             />
-            {
-              listRegion.length > 0 && listRegion.map((item, i) => <Marker
-                key={i}
-                coordinate={{
-                  "latitude": item.latitude,
-                  "longitude": item.longitude
-                }}
-                draggable >
-                <Image
-                  style={{ width: 40, height: 40, }}
-                  resizeMode="contain"
-                  source={require("./assets/location.png")}
-                />
-              </Marker>)
-            }
+            {listRegion.length > 0 &&
+              listRegion.map((item, i) => (
+                <Marker
+                  key={i}
+                  coordinate={{
+                    latitude: item.latitude,
+                    longitude: item.longitude,
+                  }}
+                  draggable>
+                  <Image
+                    style={{width: 40, height: 40}}
+                    resizeMode="contain"
+                    source={require('./assets/location.png')}
+                  />
+                </Marker>
+              ))}
           </MapView>
-        }
+        )}
 
         <View
           style={{
@@ -305,10 +334,10 @@ export default class App extends Component {
             }}>
             Move map for location
           </Text>
-          <Text style={{ fontSize: 13, color: 'grey', marginBottom: 5 }}>
+          <Text style={{fontSize: 13, color: 'grey', marginBottom: 5}}>
             Location
           </Text>
-          <Text style={{ fontSize: 13, color: 'grey', marginBottom: 10 }}>
+          <Text style={{fontSize: 13, color: 'grey', marginBottom: 10}}>
             {loading ? 'Indentifying location....' : this.state.region.value}
           </Text>
           <View
@@ -319,11 +348,23 @@ export default class App extends Component {
               marginBottom: 10,
             }}
           />
+          
           <Button
             title="Pick this location"
             color="#3976ff"
             disabled={loading ? true : false}
             onPress={this.chooseRegion}
+          />
+          <View  style={{height:20}}/>
+            
+          <Button
+            title={'Local Notification'}
+            onPress={() => {
+              this.notification.localNotification(
+                'Local Notification',
+                'Test Notification Message',
+              );
+            }}
           />
         </View>
       </ScrollView>
