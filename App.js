@@ -49,8 +49,6 @@ export default class App extends Component {
 
   updateLocation = async location => {
     var list = [...this.state.listRegion];
-    console.log("list")
-    console.log(list)
     if (list.length > 0) {
       await list.forEach((item, i) => {
         let distance = getDistance(
@@ -62,25 +60,22 @@ export default class App extends Component {
         );
         console.log('distance');
         console.log(distance);
-        console.log(item.radius);
         if (distance < item.radius) {
           if (!item.flag) {
-            // let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
-            //   item.latitude +
-            //   '&long=' +
-            //   item.longitude;
-            // fetch(url)
-            //   .then(data => {
-            //     console.log('respone call api');
-            //     console.log(data);
-            //   })
+            item.flag = true;
             this.notification.localNotification(
               'Notice',
               `You are nearby ${item.value}`,
             );
-            item.flag = true;
-            console.log('-----------------');
-            console.log(item);
+            let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
+              item.latitude +
+              '&long=' +
+              item.longitude;
+            fetch(url)
+              .then(data => {
+                console.log('respone call api');
+                console.log(data);
+              })
           }
         } else {
           item.flag = false;
@@ -146,6 +141,10 @@ export default class App extends Component {
 
     BackgroundGeolocation.on('location', location => {
       this.updateLocation(location);
+      // this.notification.localNotification(
+      //   'Notice',
+      //   `You are nearby`,
+      // );
       // handle your locations here
       // to perform long running operation on iOS
       // you need to create background task
@@ -202,15 +201,6 @@ export default class App extends Component {
       }
     });
 
-    BackgroundGeolocation.on('background', () => {
-      console.log('[INFO] App is in background');
-      Geolocation.getCurrentPosition(
-        res => {
-          this.updateLocation(res.coords);
-        },
-        err => { },
-      );
-    });
     if (Platform.OS == 'android') {
       BackgroundGeolocation.headlessTask(async event => {
         if (event.name === 'location' || event.name === 'stationary') {
@@ -241,7 +231,7 @@ export default class App extends Component {
       console.log('[INFO] App needs to authorize the http requests');
     });
 
-    
+
     BackgroundGeolocation.checkStatus(status => {
       console.log('[INFO] BackgroundGeolocation service is running', status.isRunning);
       console.log('[INFO] BackgroundGeolocation services enabled', status.locationServicesEnabled);
