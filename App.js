@@ -26,6 +26,7 @@ import {
   TouchableOpacity,
   TextInput,
   FlatList,
+  SafeAreaView,
 } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import NotificationService from './NotificationService';
@@ -44,7 +45,7 @@ export default class App extends Component {
       loading: false,
       buttonText: 'Stop Service',
       showBottom: true,
-      visibleSearch: false,
+      visibleSearch: true,
     };
     this.notification = new NotificationService(this.onNotification);
     this.onChangeTextDelayed = _.debounce(this.onChangeText, 200);
@@ -276,11 +277,13 @@ export default class App extends Component {
     const { region, loading, buttonText, listRegion, showBottom, visibleSearch, listSearch } = this.state;
     return (
       <View style={{ flexDirection: 'column', flex: 1 }}>
+        <SafeAreaView />
         <StatusBar barStyle="dark-content" />
         {region.latitude && (
           <MapView
             style={{ width: width, height: height }}
             initialRegion={region}
+            region={region}
             onRegionChangeComplete={this.onRegionChange}
             showsUserLocation={true}>
             <Marker
@@ -339,7 +342,7 @@ export default class App extends Component {
                 shadowRadius: 2.22,
               }}>
                 <TextInput
-                  style={{ paddingVertical: 5, paddingHorizontal: 15 }}
+                  style={{ paddingVertical: Platform.OS == "android" ? 5 : 10, paddingHorizontal: 15 }}
                   onChangeText={this.onChangeTextDelayed}
                   placeholder="Search"
                 />
@@ -448,17 +451,33 @@ export default class App extends Component {
     );
   }
   renderItem = (value) => {
-    console.log("------------------------")
-    console.log(value.item)
     return (
-      <ItemSearch item={value.item} />
+      <ItemSearch item={value.item} onPress={this.choosePlace(value.item)} />
     )
+  }
+  choosePlace = (item) => () => {
+    console.log("-------------choosePlace-----------")
+    console.log(item)
+    fetch(`https://maps.googleapis.com/maps/api/place/details/json?placeid=${item.place_id}&key=AIzaSyBuUbr2XwDM9nExYvtgRWNgweSFx9RiEic`)
+      .then(response => response.json())
+      .then(responseJson => {
+        var location = {
+          latitude: responseJson.result.geometry.location.lat,
+          longitude: responseJson.result.geometry.location.lng,
+          latitudeDelta: 0.001,
+          longitudeDelta: 0.001,
+        }
+        this.setState({
+          region: location,
+          listSearch: []
+        })
+      });
   }
   onChangeText = (value) => {
     fetch(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${value}&key=AIzaSyBuUbr2XwDM9nExYvtgRWNgweSFx9RiEic`)
       .then(response => response.json())
       .then(responseJson => {
-        console.log("_------------")
+        console.log("responseJson")
         console.log(responseJson)
         this.setState({
           listSearch: responseJson.predictions
