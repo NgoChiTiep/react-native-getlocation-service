@@ -28,7 +28,7 @@ import {
   FlatList,
   SafeAreaView,
 } from 'react-native';
-import MapView, {Marker, Callout} from 'react-native-maps';
+import MapView, {Marker, Callout, PROVIDER_GOOGLE} from 'react-native-maps';
 import NotificationService from './NotificationService';
 import ItemSearch from './ItemSearch';
 var _ = require('lodash');
@@ -50,6 +50,7 @@ export default class App extends Component {
     this.notification = new NotificationService(this.onNotification);
     this.onChangeTextDelayed = _.debounce(this.onChangeText, 200);
   }
+  // The generated json object
 
   //Gets called when the notification comes in
   onNotification = notif => {
@@ -70,24 +71,24 @@ export default class App extends Component {
         console.log('distance');
         console.log(distance);
         if (distance < item.radius) {
-          if (!item.flag) {
-            item.flag = true;
-            this.notification.localNotification(
-              'Notice',
-              `You are nearby ${item.value}`,
-            );
-            let url =
-              'http://118.70.177.14:37168/api/merchant/location?lat=' +
-              item.latitude +
-              '&long=' +
-              item.longitude;
-            fetch(url).then(data => {
-              console.log('respone call api');
-              console.log(data);
-            });
-          }
-        } else {
-          item.flag = false;
+          // if (!item.flag) {
+          item.flag = true;
+          this.notification.localNotification(
+            'Notice',
+            `You are nearby ${item.value}`,
+          );
+          // let url =
+          //   'http://118.70.177.14:37168/api/merchant/location?lat=' +
+          //   item.latitude +
+          //   '&long=' +
+          //   item.longitude;
+          // fetch(url).then(data => {
+          //   console.log('respone call api');
+          //   console.log(data);
+          // });
+          // }
+          // } else {
+          //   item.flag = false;
         }
       });
       this.setState({
@@ -122,7 +123,7 @@ export default class App extends Component {
 
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
-      stationaryRadius: 50,
+      // stationaryRadius: 50,
       distanceFilter: 50,
       notificationTitle: 'Background tracking',
       notificationText: 'enabled',
@@ -149,6 +150,11 @@ export default class App extends Component {
     });
 
     BackgroundGeolocation.on('location', location => {
+      this.notification.localNotification(
+        'Notice',
+        `Location updated:  ${location.latitude}, ${location.longitude}`,
+      );
+
       this.updateLocation(location);
       // this.notification.localNotification(
       //   'Notice',
@@ -280,6 +286,7 @@ export default class App extends Component {
   componentWillUnmount() {
     BackgroundGeolocation.removeAllListeners();
   }
+
   render() {
     const {
       region,
@@ -290,6 +297,19 @@ export default class App extends Component {
       visibleSearch,
       listSearch,
     } = this.state;
+
+    var mapStyle = [
+      {
+        featureType: 'all',
+        elementType: 'all',
+        stylers: [
+          {
+            visibility: 'on',
+          },
+        ],
+      },
+    ];
+
     return (
       <View style={{flexDirection: 'column', flex: 1}}>
         <SafeAreaView />
@@ -298,8 +318,15 @@ export default class App extends Component {
           <MapView
             style={{width: width, height: height}}
             initialRegion={region}
-            region={region}
+            provider={PROVIDER_GOOGLE}
+            customMapStyle={mapStyle}
+            zoomControlEnabled={true}
+            zoomEnabled={true}
+            zoomTapEnabled={true}
+            // region={region}
             onRegionChangeComplete={this.onRegionChange}
+            moveOnMarkerPress={false}
+            onMapReady={this.onMapReady}
             showsUserLocation={true}>
             <Marker
               coordinate={{
@@ -340,7 +367,7 @@ export default class App extends Component {
               ))}
           </MapView>
         )}
-        {visibleSearch ? (
+        {/* {visibleSearch ? (
           <View
             style={{
               width: width,
@@ -395,10 +422,10 @@ export default class App extends Component {
               />
             )}
           </View>
-        ) : null}
+        ) : null} */}
         {showBottom ? (
           <View style={styles.viewBottom}>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={this.changeVisibleSearch}
               style={{
                 padding: 10,
@@ -407,7 +434,7 @@ export default class App extends Component {
                 style={{width: 30, height: 30, resizeMode: 'contain'}}
                 source={require('./assets/search.png')}
               />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             <View style={styles.contentBottom}>
               <View
                 style={{
@@ -424,14 +451,14 @@ export default class App extends Component {
                   }}>
                   Move map for location
                 </Text>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={{paddingLeft: 10}}
                   onPress={this.resizeBottom}>
                   <Image
                     style={{width: 20, height: 20, resizeMode: 'contain'}}
                     source={require('./assets/zoomOut.png')}
                   />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
 
               <Text style={{fontSize: 13, color: 'grey', marginBottom: 5}}>
@@ -637,7 +664,7 @@ export default class App extends Component {
           longitude: this.state.region.longitude,
           key: responseJson.results[0].place_id,
           value: responseJson.results[0].formatted_address,
-          radius: 300,
+          radius: 400,
           latitudeDelta: 0.001,
           longitudeDelta: 0.001,
         };

@@ -31,12 +31,15 @@ static void InitializeFlipper(UIApplication *application) {
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+  [GMSServices provideAPIKey:@"AIzaSyCKzELK_x5o-2wspFHh9Yv_0AUUAnNZ04o"];
+
+  
 #if DEBUG
   InitializeFlipper(application);
 #endif
 
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
-  [GMSServices provideAPIKey:@"AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps"];
+  
 
   RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
                                                    moduleName:@"rn_location"
