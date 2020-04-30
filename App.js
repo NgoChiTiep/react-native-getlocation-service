@@ -135,8 +135,8 @@ export default class App extends Component {
       startForeground: true,
       locationProvider: BackgroundGeolocation.DISTANCE_FILTER_PROVIDER,
       interval: 10000,
-      // fastestInterval: 5000,
-      // activitiesInterval: 10000,
+      fastestInterval: 5000,
+      activitiesInterval: 10000,
       stopOnStillActivity: false,
       url: 'http://192.168.81.15:3000/location',
       httpHeaders: {
