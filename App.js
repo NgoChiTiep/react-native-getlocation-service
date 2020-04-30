@@ -423,110 +423,60 @@ export default class App extends Component {
             )}
           </View>
         ) : null} */}
-        {showBottom ? (
-          <View style={styles.viewBottom}>
-            {/* <TouchableOpacity
-              onPress={this.changeVisibleSearch}
+        <View style={styles.viewBottom}>
+          <View style={styles.contentBottom}>
+            <View
               style={{
-                padding: 10,
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                flex: 1,
               }}>
-              <Image
-                style={{width: 30, height: 30, resizeMode: 'contain'}}
-                source={require('./assets/search.png')}
-              />
-            </TouchableOpacity> */}
-            <View style={styles.contentBottom}>
-              <View
+              <Text
                 style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  flex: 1,
+                  fontWeight: 'bold',
+                  fontSize: 15,
+                  color: 'grey',
+                  marginBottom: 15,
                 }}>
-                <Text
-                  style={{
-                    fontWeight: 'bold',
-                    fontSize: 15,
-                    color: 'grey',
-                    marginBottom: 15,
-                  }}>
-                  Move map for location
-                </Text>
-                {/* <TouchableOpacity
-                  style={{paddingLeft: 10}}
-                  onPress={this.resizeBottom}>
-                  <Image
-                    style={{width: 20, height: 20, resizeMode: 'contain'}}
-                    source={require('./assets/zoomOut.png')}
-                  />
-                </TouchableOpacity> */}
-              </View>
-
-              <Text style={{fontSize: 13, color: 'grey', marginBottom: 5}}>
-                Location
+                Move map for location
               </Text>
-              <Text style={{fontSize: 13, color: 'grey', marginBottom: 10}}>
-                {loading
-                  ? 'Indentifying location....'
-                  : this.state.region.value}
-              </Text>
-              <View
-                style={{
-                  width: '100%',
-                  height: 0.7,
-                  backgroundColor: 'grey',
-                  marginBottom: 10,
-                }}
-              />
-              <Button
-                title="Pick this location"
-                color="#3976ff"
-                disabled={loading ? true : false}
-                onPress={this.chooseRegion}
-              />
-
-              <View style={{height: 20}} />
-              <Button
-                title="Clear all geofences"
-                color="#3976ff"
-                disabled={loading ? true : false}
-                onPress={this.clearAsyncStorage}
-              />
-
-              <Button
-                title={buttonText}
-                color={'#FD3376'}
-                onPress={() => this.stopService()}
-              />
             </View>
-          </View>
-        ) : (
-          <View style={styles.viewBottom}>
-            <TouchableOpacity
-              onPress={this.changeVisibleSearch}
+
+            <Text style={{fontSize: 13, color: 'grey', marginBottom: 5}}>
+              Location
+            </Text>
+            <Text style={{fontSize: 13, color: 'grey', marginBottom: 10}}>
+              {loading ? 'Indentifying location....' : this.state.region.value}
+            </Text>
+            <View
               style={{
-                padding: 10,
-              }}>
-              <Image
-                style={{width: 30, height: 30, resizeMode: 'contain'}}
-                source={require('./assets/search.png')}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={this.resizeBottom}
-              style={{
-                width: width,
-                backgroundColor: 'white',
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingVertical: 10,
-              }}>
-              <Image
-                style={{width: 20, height: 20, resizeMode: 'contain'}}
-                source={require('./assets/zoomIn.png')}
-              />
-            </TouchableOpacity>
+                width: '100%',
+                height: 0.7,
+                backgroundColor: 'grey',
+                marginBottom: 10,
+              }}
+            />
+            <Button
+              title="Pick this location"
+              color="#3976ff"
+              disabled={loading ? true : false}
+              onPress={this.chooseRegion}
+            />
+
+            <Button
+              title="Clear all geofences"
+              color="#3976ff"
+              disabled={loading ? true : false}
+              onPress={this.clearAsyncStorage}
+            />
+
+            <Button
+              title={buttonText}
+              color={'#FD3376'}
+              onPress={() => this.stopService()}
+            />
           </View>
-        )}
+        </View>
       </View>
     );
   }
@@ -542,7 +492,7 @@ export default class App extends Component {
       AsyncStorage.clear();
     }
     this.setState({
-      listRegion: [],
+      listDefine: [],
     });
   };
 
