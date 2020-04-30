@@ -68,7 +68,7 @@ export default class App extends Component {
             longitude: location.longitude,
           },
         );
-        console.log('distance');
+        console.log('distance: ' + distance + ' ' + item.radius);
         console.log(distance);
         if (distance < item.radius) {
           // if (!item.flag) {
@@ -483,7 +483,14 @@ export default class App extends Component {
                 disabled={loading ? true : false}
                 onPress={this.chooseRegion}
               />
+
               <View style={{height: 20}} />
+              <Button
+                title="Clear all geofences"
+                color="#3976ff"
+                disabled={loading ? true : false}
+                onPress={this.clearAsyncStorage}
+              />
 
               <Button
                 title={buttonText}
@@ -528,6 +535,17 @@ export default class App extends Component {
       <ItemSearch item={value.item} onPress={this.choosePlace(value.item)} />
     );
   };
+
+  clearAsyncStorage = async () => {
+    const asyncStorageKeys = await AsyncStorage.getAllKeys();
+    if (asyncStorageKeys.length > 0) {
+      AsyncStorage.clear();
+    }
+    this.setState({
+      listRegion: [],
+    });
+  };
+
   choosePlace = item => () => {
     console.log('-------------choosePlace-----------');
     console.log(item);
