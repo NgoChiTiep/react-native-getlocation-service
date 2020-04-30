@@ -9,8 +9,8 @@ console.disableYellowBox = true;
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
 import AsyncStorage from '@react-native-community/async-storage';
 import Geolocation from '@react-native-community/geolocation';
-import { getDistance } from 'geolib';
-import React, { Component } from 'react';
+import {getDistance} from 'geolib';
+import React, {Component} from 'react';
 import {
   Button,
   Dimensions,
@@ -28,7 +28,7 @@ import {
   FlatList,
   SafeAreaView,
 } from 'react-native';
-import MapView, { Marker, Callout } from 'react-native-maps';
+import MapView, {Marker, Callout} from 'react-native-maps';
 import NotificationService from './NotificationService';
 import ItemSearch from './ItemSearch';
 var _ = require('lodash');
@@ -61,7 +61,7 @@ export default class App extends Component {
     if (list.length > 0) {
       await list.forEach((item, i) => {
         let distance = getDistance(
-          { latitude: item.latitude, longitude: item.longitude },
+          {latitude: item.latitude, longitude: item.longitude},
           {
             latitude: location.latitude,
             longitude: location.longitude,
@@ -76,15 +76,15 @@ export default class App extends Component {
               'Notice',
               `You are nearby ${item.value}`,
             );
-            let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
+            let url =
+              'http://118.70.177.14:37168/api/merchant/location?lat=' +
               item.latitude +
               '&long=' +
               item.longitude;
-            fetch(url)
-              .then(data => {
-                console.log('respone call api');
-                console.log(data);
-              })
+            fetch(url).then(data => {
+              console.log('respone call api');
+              console.log(data);
+            });
           }
         } else {
           item.flag = false;
@@ -117,13 +117,13 @@ export default class App extends Component {
           loading: false,
         });
       },
-      err => { },
+      err => {},
     );
 
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
-      // stationaryRadius: 50,
-      distanceFilter: 100,
+      stationaryRadius: 50,
+      distanceFilter: 50,
       notificationTitle: 'Background tracking',
       notificationText: 'enabled',
       debug: false,
@@ -131,7 +131,7 @@ export default class App extends Component {
       startOnBoot: true,
       stopOnTerminate: false,
       startForeground: true,
-      locationProvider: BackgroundGeolocation.ACTIVITY_PROVIDER,
+      locationProvider: BackgroundGeolocation.DISTANCE_FILTER_PROVIDER,
       interval: 10000,
       fastestInterval: 5000,
       activitiesInterval: 10000,
@@ -217,7 +217,7 @@ export default class App extends Component {
             res => {
               this.updateLocation(res.coords);
             },
-            err => { },
+            err => {},
           );
         }
       });
@@ -240,11 +240,18 @@ export default class App extends Component {
       console.log('[INFO] App needs to authorize the http requests');
     });
 
-
     BackgroundGeolocation.checkStatus(status => {
-      console.log('[INFO] BackgroundGeolocation service is running', status.isRunning);
-      console.log('[INFO] BackgroundGeolocation services enabled', status.locationServicesEnabled);
-      console.log('[INFO] BackgroundGeolocation auth status: ' + status.authorization);
+      console.log(
+        '[INFO] BackgroundGeolocation service is running',
+        status.isRunning,
+      );
+      console.log(
+        '[INFO] BackgroundGeolocation services enabled',
+        status.locationServicesEnabled,
+      );
+      console.log(
+        '[INFO] BackgroundGeolocation auth status: ' + status.authorization,
+      );
       // you don't need to check status before start (this is just the example)
       BackgroundGeolocation.start(); //triggers start on start event
     });
@@ -274,14 +281,22 @@ export default class App extends Component {
     BackgroundGeolocation.removeAllListeners();
   }
   render() {
-    const { region, loading, buttonText, listRegion, showBottom, visibleSearch, listSearch } = this.state;
+    const {
+      region,
+      loading,
+      buttonText,
+      listRegion,
+      showBottom,
+      visibleSearch,
+      listSearch,
+    } = this.state;
     return (
-      <View style={{ flexDirection: 'column', flex: 1 }}>
+      <View style={{flexDirection: 'column', flex: 1}}>
         <SafeAreaView />
         <StatusBar barStyle="dark-content" />
         {region.latitude && (
           <MapView
-            style={{ width: width, height: height }}
+            style={{width: width, height: height}}
             initialRegion={region}
             region={region}
             onRegionChangeComplete={this.onRegionChange}
@@ -303,7 +318,7 @@ export default class App extends Component {
                   }}
                   draggable>
                   <Image
-                    style={{ width: 40, height: 40 }}
+                    style={{width: 40, height: 40}}
                     resizeMode="contain"
                     source={require('./assets/location.png')}
                   />
@@ -311,16 +326,12 @@ export default class App extends Component {
                     tooltip={true}
                     style={styles.makerInfo}
                     onPress={this.removeMarker(item)}>
-
                     <Text
-                      style={{ fontSize: 14, color: 'white', marginBottom: 10 }}>
+                      style={{fontSize: 14, color: 'white', marginBottom: 10}}>
                       {item.value}
                     </Text>
-                    <View
-                      style={styles.makerInfoButton}
-                    >
-                      <Text
-                        style={{ fontSize: 14, color: '#D85A4B' }}>
+                    <View style={styles.makerInfoButton}>
+                      <Text style={{fontSize: 14, color: '#D85A4B'}}>
                         Remove
                       </Text>
                     </View>
@@ -329,11 +340,22 @@ export default class App extends Component {
               ))}
           </MapView>
         )}
-        {
-          visibleSearch ?
-            <View style={{ width: width, position: 'absolute', top: 20, alignItems: 'center', flexDirection: 'column' }}>
-              <View style={{
-                width: width * 0.8, backgroundColor: 'white', borderRadius: 20, elevation: 4, shadowColor: "#000",
+        {visibleSearch ? (
+          <View
+            style={{
+              width: width,
+              position: 'absolute',
+              top: 20,
+              alignItems: 'center',
+              flexDirection: 'column',
+            }}>
+            <View
+              style={{
+                width: width * 0.8,
+                backgroundColor: 'white',
+                borderRadius: 20,
+                elevation: 4,
+                shadowColor: '#000',
                 shadowOffset: {
                   width: 0,
                   height: 1,
@@ -341,124 +363,152 @@ export default class App extends Component {
                 shadowOpacity: 0.22,
                 shadowRadius: 2.22,
               }}>
-                <TextInput
-                  style={{ paddingVertical: Platform.OS == "android" ? 5 : 10, paddingHorizontal: 15 }}
-                  onChangeText={this.onChangeTextDelayed}
-                  placeholder="Search"
-                />
-              </View>
-              {
-                listSearch.length > 0 &&
-                <FlatList
-                  style={{
-                    width: width * 0.8, maxHeight: 300, flex: 1, backgroundColor: 'white', marginTop: 5, borderRadius: 4, elevation: 1, shadowColor: "#000",
-                    shadowOffset: {
-                      width: 0,
-                      height: 1,
-                    },
-                    shadowOpacity: 0.22,
-                    shadowRadius: 2.22,
-                  }}
-                  data={listSearch}
-                  renderItem={this.renderItem}
-                />
-              }
-
-            </View> : null
-        }
-        {
-          showBottom ?
-            <View style={styles.viewBottom}>
-              <TouchableOpacity
-                onPress={this.changeVisibleSearch}
+              <TextInput
                 style={{
-                  padding: 10,
-                }}>
-                <Image style={{ width: 30, height: 30, resizeMode: "contain", }} source={require('./assets/search.png')} />
-              </TouchableOpacity>
-              <View
-                style={styles.contentBottom}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", flex: 1 }}>
-                  <Text
-                    style={{
-                      fontWeight: 'bold',
-                      fontSize: 15,
-                      color: 'grey',
-                      marginBottom: 15,
-                    }}>
-                    Move map for location
-          </Text>
-                  <TouchableOpacity
-                    style={{ paddingLeft: 10 }}
-                    onPress={this.resizeBottom}
-                  >
-                    <Image style={{ width: 20, height: 20, resizeMode: "contain", }} source={require('./assets/zoomOut.png')} />
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={{ fontSize: 13, color: 'grey', marginBottom: 5 }}>
-                  Location
-          </Text>
-                <Text style={{ fontSize: 13, color: 'grey', marginBottom: 10 }}>
-                  {loading ? 'Indentifying location....' : this.state.region.value}
-                </Text>
-                <View
-                  style={{
-                    width: '100%',
-                    height: 0.7,
-                    backgroundColor: 'grey',
-                    marginBottom: 10,
-                  }}
-                />
-                <Button
-                  title="Pick this location"
-                  color="#3976ff"
-                  disabled={loading ? true : false}
-                  onPress={this.chooseRegion}
-                />
-                <View style={{ height: 20 }} />
-
-                <Button
-                  title={buttonText}
-                  color={'#FD3376'}
-                  onPress={() => this.stopService()}
-                />
-              </View>
+                  paddingVertical: Platform.OS == 'android' ? 5 : 10,
+                  paddingHorizontal: 15,
+                }}
+                onChangeText={this.onChangeTextDelayed}
+                placeholder="Search"
+              />
             </View>
-            : <View style={styles.viewBottom}>
-              <TouchableOpacity
-                onPress={this.changeVisibleSearch}
+            {listSearch.length > 0 && (
+              <FlatList
                 style={{
-                  padding: 10,
-                }}>
-                <Image style={{ width: 30, height: 30, resizeMode: "contain", }} source={require('./assets/search.png')} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={this.resizeBottom}
-                style={{
-                  width: width,
+                  width: width * 0.8,
+                  maxHeight: 300,
+                  flex: 1,
                   backgroundColor: 'white',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingVertical: 10,
+                  marginTop: 5,
+                  borderRadius: 4,
+                  elevation: 1,
+                  shadowColor: '#000',
+                  shadowOffset: {
+                    width: 0,
+                    height: 1,
+                  },
+                  shadowOpacity: 0.22,
+                  shadowRadius: 2.22,
+                }}
+                data={listSearch}
+                renderItem={this.renderItem}
+              />
+            )}
+          </View>
+        ) : null}
+        {showBottom ? (
+          <View style={styles.viewBottom}>
+            <TouchableOpacity
+              onPress={this.changeVisibleSearch}
+              style={{
+                padding: 10,
+              }}>
+              <Image
+                style={{width: 30, height: 30, resizeMode: 'contain'}}
+                source={require('./assets/search.png')}
+              />
+            </TouchableOpacity>
+            <View style={styles.contentBottom}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  flex: 1,
                 }}>
+                <Text
+                  style={{
+                    fontWeight: 'bold',
+                    fontSize: 15,
+                    color: 'grey',
+                    marginBottom: 15,
+                  }}>
+                  Move map for location
+                </Text>
+                <TouchableOpacity
+                  style={{paddingLeft: 10}}
+                  onPress={this.resizeBottom}>
+                  <Image
+                    style={{width: 20, height: 20, resizeMode: 'contain'}}
+                    source={require('./assets/zoomOut.png')}
+                  />
+                </TouchableOpacity>
+              </View>
 
-                <Image style={{ width: 20, height: 20, resizeMode: "contain", }} source={require('./assets/zoomIn.png')} />
-              </TouchableOpacity>
+              <Text style={{fontSize: 13, color: 'grey', marginBottom: 5}}>
+                Location
+              </Text>
+              <Text style={{fontSize: 13, color: 'grey', marginBottom: 10}}>
+                {loading
+                  ? 'Indentifying location....'
+                  : this.state.region.value}
+              </Text>
+              <View
+                style={{
+                  width: '100%',
+                  height: 0.7,
+                  backgroundColor: 'grey',
+                  marginBottom: 10,
+                }}
+              />
+              <Button
+                title="Pick this location"
+                color="#3976ff"
+                disabled={loading ? true : false}
+                onPress={this.chooseRegion}
+              />
+              <View style={{height: 20}} />
+
+              <Button
+                title={buttonText}
+                color={'#FD3376'}
+                onPress={() => this.stopService()}
+              />
             </View>
-        }
+          </View>
+        ) : (
+          <View style={styles.viewBottom}>
+            <TouchableOpacity
+              onPress={this.changeVisibleSearch}
+              style={{
+                padding: 10,
+              }}>
+              <Image
+                style={{width: 30, height: 30, resizeMode: 'contain'}}
+                source={require('./assets/search.png')}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={this.resizeBottom}
+              style={{
+                width: width,
+                backgroundColor: 'white',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 10,
+              }}>
+              <Image
+                style={{width: 20, height: 20, resizeMode: 'contain'}}
+                source={require('./assets/zoomIn.png')}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     );
   }
-  renderItem = (value) => {
+  renderItem = value => {
     return (
       <ItemSearch item={value.item} onPress={this.choosePlace(value.item)} />
+    );
+  };
+  choosePlace = item => () => {
+    console.log('-------------choosePlace-----------');
+    console.log(item);
+    fetch(
+      `https://maps.googleapis.com/maps/api/place/details/json?placeid=${
+        item.place_id
+      }&key=AIzaSyBuUbr2XwDM9nExYvtgRWNgweSFx9RiEic`,
     )
-  }
-  choosePlace = (item) => () => {
-    console.log("-------------choosePlace-----------")
-    console.log(item)
-    fetch(`https://maps.googleapis.com/maps/api/place/details/json?placeid=${item.place_id}&key=AIzaSyBuUbr2XwDM9nExYvtgRWNgweSFx9RiEic`)
       .then(response => response.json())
       .then(responseJson => {
         var location = {
@@ -466,35 +516,37 @@ export default class App extends Component {
           longitude: responseJson.result.geometry.location.lng,
           latitudeDelta: 0.001,
           longitudeDelta: 0.001,
-        }
+        };
         this.setState({
           region: location,
-          listSearch: []
-        })
+          listSearch: [],
+        });
       });
-  }
-  onChangeText = (value) => {
-    fetch(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${value}&key=AIzaSyBuUbr2XwDM9nExYvtgRWNgweSFx9RiEic`)
+  };
+  onChangeText = value => {
+    fetch(
+      `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${value}&key=AIzaSyBuUbr2XwDM9nExYvtgRWNgweSFx9RiEic`,
+    )
       .then(response => response.json())
       .then(responseJson => {
-        console.log("responseJson")
-        console.log(responseJson)
+        console.log('responseJson');
+        console.log(responseJson);
         this.setState({
-          listSearch: responseJson.predictions
-        })
+          listSearch: responseJson.predictions,
+        });
       });
-  }
+  };
 
   resizeBottom = () => {
     this.setState({
-      showBottom: !this.state.showBottom
-    })
-  }
+      showBottom: !this.state.showBottom,
+    });
+  };
   changeVisibleSearch = () => {
     this.setState({
-      visibleSearch: !this.state.visibleSearch
-    })
-  }
+      visibleSearch: !this.state.visibleSearch,
+    });
+  };
   removeMarker = item => () => {
     var newList = this.state.listRegion.filter(obj => obj.key !== item.key);
     this.setState(
@@ -573,9 +625,9 @@ export default class App extends Component {
   fetchAddress = () => {
     fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
-      this.state.region.latitude
+        this.state.region.latitude
       },${
-      this.state.region.longitude
+        this.state.region.longitude
       }&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`,
     )
       .then(response => response.json())
@@ -585,7 +637,7 @@ export default class App extends Component {
           longitude: this.state.region.longitude,
           key: responseJson.results[0].place_id,
           value: responseJson.results[0].formatted_address,
-          radius: 100,
+          radius: 300,
           latitudeDelta: 0.001,
           longitudeDelta: 0.001,
         };
@@ -631,7 +683,7 @@ const styles = StyleSheet.create({
   makerInfo: {
     paddingHorizontal: 15,
     paddingVertical: 10,
-    borderColor: "red",
+    borderColor: 'red',
     borderWidth: 1,
     backgroundColor: '#556080',
     // height: 100,
@@ -640,24 +692,24 @@ const styles = StyleSheet.create({
   },
   makerInfoButton: {
     paddingVertical: 10,
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 10,
-    backgroundColor: "white"
+    backgroundColor: 'white',
     // position: 'absolute',
   },
   viewBottom: {
     width: width,
-    position: "absolute",
-    flexDirection: "column",
+    position: 'absolute',
+    flexDirection: 'column',
     bottom: 0,
-    alignItems: 'flex-end'
+    alignItems: 'flex-end',
   },
   contentBottom: {
     width: width,
     backgroundColor: 'white',
     paddingHorizontal: 10,
     paddingVertical: 10,
-  }
+  },
 });
