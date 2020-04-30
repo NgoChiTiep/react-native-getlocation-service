@@ -69,8 +69,9 @@ export default class App extends Component {
           },
         );
         console.log('distance: ' + distance + ' ' + item.radius);
-        console.log(distance);
+        console.log(item.value + ': ' + distance < item.radius);
         if (distance < item.radius) {
+
           // if (!item.flag) {
           item.flag = true;
           this.notification.localNotification(
@@ -134,8 +135,8 @@ export default class App extends Component {
       startForeground: true,
       locationProvider: BackgroundGeolocation.DISTANCE_FILTER_PROVIDER,
       interval: 10000,
-      fastestInterval: 5000,
-      activitiesInterval: 10000,
+      // fastestInterval: 5000,
+      // activitiesInterval: 10000,
       stopOnStillActivity: false,
       url: 'http://192.168.81.15:3000/location',
       httpHeaders: {
