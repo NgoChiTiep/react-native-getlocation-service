@@ -69,7 +69,7 @@ export default class App extends Component {
           },
         );
         console.log('distance: ' + distance + ' ' + item.radius);
-        console.log(item.value + ': ' + distance < item.radius);
+        console.log(distance < item.radius);
         if (distance < item.radius) {
 
           if (!item.flag) {
@@ -124,7 +124,8 @@ export default class App extends Component {
 
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
-      // stationaryRadius: 50,
+      saveBatteryOnBackground: true,
+      stationaryRadius: 50,
       distanceFilter: 50,
       notificationTitle: 'Background tracking',
       notificationText: 'enabled',
@@ -133,7 +134,7 @@ export default class App extends Component {
       startOnBoot: true,
       stopOnTerminate: false,
       startForeground: true,
-      locationProvider: BackgroundGeolocation.ACTIVITY_PROVIDER,
+      locationProvider: Platform.OS === 'ios' ? BackgroundGeolocation.DISTANCE_FILTER_PROVIDER : BackgroundGeolocation.ACTIVITY_PROVIDER, 
       interval: 10000,
       fastestInterval: 5000,
       activitiesInterval: 10000,
@@ -151,10 +152,10 @@ export default class App extends Component {
     });
 
     BackgroundGeolocation.on('location', location => {
-      // this.notification.localNotification(
-      //   'Notice',
-      //   `Location updated:  ${location.latitude}, ${location.longitude}`,
-      // );
+      this.notification.localNotification(
+        'Notice',
+        `Location updated:  ${location.latitude}, ${location.longitude}`,
+      );
 
       this.updateLocation(location);
       // this.notification.localNotification(
@@ -641,7 +642,7 @@ export default class App extends Component {
           longitude: this.state.region.longitude,
           key: responseJson.results[0].place_id,
           value: responseJson.results[0].formatted_address,
-          radius: 400,
+          radius: 700,
           latitudeDelta: 0.001,
           longitudeDelta: 0.001,
         };
