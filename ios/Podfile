@@ -81,6 +81,12 @@ target 'rn_location' do
 
   # pod 'RNSimpleNativeGeofencing', :path => '../node_modules/react-native-simple-native-geofencing'
 
+  permissions_path = '../node_modules/react-native-permissions/ios'
+  pod 'Permission-Motion', :path => "#{permissions_path}/Motion.podspec"
+  pod 'Permission-Notifications', :path => "#{permissions_path}/Notifications.podspec"
+  pod 'Permission-LocationAlways', :path => "#{permissions_path}/LocationAlways.podspec"
+  pod 'Permission-LocationWhenInUse', :path => "#{permissions_path}/LocationWhenInUse.podspec"
+
   target 'rn_locationTests' do
     inherit! :complete
     # Pods for testing
