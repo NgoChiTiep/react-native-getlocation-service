@@ -9,8 +9,8 @@ console.disableYellowBox = true;
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
 import AsyncStorage from '@react-native-community/async-storage';
 import Geolocation from '@react-native-community/geolocation';
-import {getDistance} from 'geolib';
-import React, {Component} from 'react';
+import { getDistance } from 'geolib';
+import React, { Component } from 'react';
 import {
   Button,
   Dimensions,
@@ -28,9 +28,10 @@ import {
   FlatList,
   SafeAreaView,
 } from 'react-native';
-import MapView, {Marker, Callout, PROVIDER_GOOGLE} from 'react-native-maps';
+import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import NotificationService from './NotificationService';
 import ItemSearch from './ItemSearch';
+import { checkPermisson } from './CheckPermisson';
 var _ = require('lodash');
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -58,12 +59,11 @@ export default class App extends Component {
   };
 
   updateLocation = async location => {
-    var nearby = false;
     var list = [...this.state.listRegion];
     if (list.length > 0) {
       await list.forEach((item, i) => {
         let distance = getDistance(
-          {latitude: item.latitude, longitude: item.longitude},
+          { latitude: item.latitude, longitude: item.longitude },
           {
             latitude: location.latitude,
             longitude: location.longitude,
@@ -97,39 +97,15 @@ export default class App extends Component {
         listRegion: list,
       });
     }
-
-    if (!nearby) {
-      this.notification.localNotification(
-        'Notice',
-        `Location updated:  ${location.latitude}, ${location.longitude}`,
-      );
-    }
   };
-  async configLocation() {
+  
+  async componentDidMount() {
     var listDefine = await AsyncStorage.getItem('define_region');
-    console.log(JSON.parse(listDefine));
     if (listDefine) {
       this.setState({
         listRegion: JSON.parse(listDefine),
       });
     }
-
-    Geolocation.getCurrentPosition(
-      res => {
-        var region = {
-          latitude: res.coords.latitude,
-          longitude: res.coords.longitude,
-          latitudeDelta: 0.001,
-          longitudeDelta: 0.001,
-        };
-        this.setState({
-          region: region,
-          loading: false,
-        });
-      },
-      err => {},
-    );
-
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
       saveBatteryOnBackground: true,
@@ -161,13 +137,20 @@ export default class App extends Component {
         foo: 'bar', // you can also add your own properties
       },
     });
+    var region = null
+
+    try {
+      region = await checkPermisson.getLocation()
+    } catch (error) {
+      region = error
+    }
+    this.setState({
+      region: region,
+      loading: false,
+    });
+    BackgroundGeolocation.start();
 
     BackgroundGeolocation.on('location', location => {
-      // this.notification.localNotification(
-      //   'Notice',
-      //   `Location updated:  ${location.latitude}, ${location.longitude}`,
-      // );
-
       this.updateLocation(location);
       // this.notification.localNotification(
       //   'Notice',
@@ -236,7 +219,7 @@ export default class App extends Component {
             res => {
               this.updateLocation(res.coords);
             },
-            err => {},
+            err => { },
           );
         }
       });
@@ -259,41 +242,6 @@ export default class App extends Component {
       console.log('[INFO] App needs to authorize the http requests');
     });
 
-    BackgroundGeolocation.checkStatus(status => {
-      console.log(
-        '[INFO] BackgroundGeolocation service is running',
-        status.isRunning,
-      );
-      console.log(
-        '[INFO] BackgroundGeolocation services enabled',
-        status.locationServicesEnabled,
-      );
-      console.log(
-        '[INFO] BackgroundGeolocation auth status: ' + status.authorization,
-      );
-      // you don't need to check status before start (this is just the example)
-      BackgroundGeolocation.start(); //triggers start on start event
-    });
-  }
-
-  async componentDidMount() {
-    if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'OEV App',
-          message: 'OEV App access to your location ',
-        },
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        this.configLocation();
-        console.log('You can use the location');
-      } else {
-        console.log('location permission denied');
-      }
-    } else {
-      this.configLocation();
-    }
   }
 
   componentWillUnmount() {
@@ -324,12 +272,12 @@ export default class App extends Component {
     ];
 
     return (
-      <View style={{flexDirection: 'column', flex: 1}}>
+      <View style={{ flexDirection: 'column', flex: 1 }}>
         <SafeAreaView />
         <StatusBar barStyle="dark-content" />
         {region.latitude && (
           <MapView
-            style={{width: width, height: height}}
+            style={{ width: width, height: height }}
             initialRegion={region}
             provider={PROVIDER_GOOGLE}
             customMapStyle={mapStyle}
@@ -358,7 +306,7 @@ export default class App extends Component {
                   }}
                   draggable>
                   <Image
-                    style={{width: 40, height: 40}}
+                    style={{ width: 40, height: 40 }}
                     resizeMode="contain"
                     source={require('./assets/location.png')}
                   />
@@ -367,11 +315,11 @@ export default class App extends Component {
                     style={styles.makerInfo}
                     onPress={this.removeMarker(item)}>
                     <Text
-                      style={{fontSize: 14, color: 'white', marginBottom: 10}}>
+                      style={{ fontSize: 14, color: 'white', marginBottom: 10 }}>
                       {item.value}
                     </Text>
                     <View style={styles.makerInfoButton}>
-                      <Text style={{fontSize: 14, color: '#D85A4B'}}>
+                      <Text style={{ fontSize: 14, color: '#D85A4B' }}>
                         Remove
                       </Text>
                     </View>
@@ -455,10 +403,10 @@ export default class App extends Component {
               </Text>
             </View>
 
-            <Text style={{fontSize: 13, color: 'grey', marginBottom: 5}}>
+            <Text style={{ fontSize: 13, color: 'grey', marginBottom: 5 }}>
               Location
             </Text>
-            <Text style={{fontSize: 13, color: 'grey', marginBottom: 10}}>
+            <Text style={{ fontSize: 13, color: 'grey', marginBottom: 10 }}>
               {loading ? 'Indentifying location....' : this.state.region.value}
             </Text>
             <View
@@ -475,7 +423,7 @@ export default class App extends Component {
               disabled={loading ? true : false}
               onPress={this.chooseRegion}
             />
-            <View style={{flexDirection: 'row', marginTop: 15}}>
+            <View style={{ flexDirection: 'row', marginTop: 15 }}>
               <TouchableOpacity
                 style={{
                   backgroundColor: '#3976ff',
@@ -486,7 +434,7 @@ export default class App extends Component {
                 }}
                 disabled={loading ? true : false}
                 onPress={this.clearAsyncStorage}>
-                <Text style={{color: 'white'}}>Clear all geofences</Text>
+                <Text style={{ color: 'white' }}>Clear all geofences</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={{
@@ -497,7 +445,7 @@ export default class App extends Component {
                   paddingVertical: 10,
                 }}
                 onPress={() => this.stopService()}>
-                <Text style={{color: 'white'}}>{buttonText}</Text>
+                <Text style={{ color: 'white' }}>{buttonText}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -526,7 +474,7 @@ export default class App extends Component {
     console.log(item);
     fetch(
       `https://maps.googleapis.com/maps/api/place/details/json?placeid=${
-        item.place_id
+      item.place_id
       }&key=AIzaSyBuUbr2XwDM9nExYvtgRWNgweSFx9RiEic`,
     )
       .then(response => response.json())
@@ -645,9 +593,9 @@ export default class App extends Component {
   fetchAddress = () => {
     fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
-        this.state.region.latitude
+      this.state.region.latitude
       },${
-        this.state.region.longitude
+      this.state.region.longitude
       }&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`,
     )
       .then(response => response.json())
