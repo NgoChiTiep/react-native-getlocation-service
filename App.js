@@ -9,8 +9,8 @@ console.disableYellowBox = true;
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
 import AsyncStorage from '@react-native-community/async-storage';
 import Geolocation from '@react-native-community/geolocation';
-import { getDistance } from 'geolib';
-import React, { Component } from 'react';
+import {getDistance} from 'geolib';
+import React, {Component} from 'react';
 import {
   Button,
   Dimensions,
@@ -28,7 +28,7 @@ import {
   FlatList,
   SafeAreaView,
 } from 'react-native';
-import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, {Marker, Callout, PROVIDER_GOOGLE} from 'react-native-maps';
 import NotificationService from './NotificationService';
 import ItemSearch from './ItemSearch';
 var _ = require('lodash');
@@ -58,11 +58,12 @@ export default class App extends Component {
   };
 
   updateLocation = async location => {
+    var nearby = false;
     var list = [...this.state.listRegion];
     if (list.length > 0) {
       await list.forEach((item, i) => {
         let distance = getDistance(
-          { latitude: item.latitude, longitude: item.longitude },
+          {latitude: item.latitude, longitude: item.longitude},
           {
             latitude: location.latitude,
             longitude: location.longitude,
@@ -71,22 +72,22 @@ export default class App extends Component {
         console.log('distance: ' + distance + ' ' + item.radius);
         console.log(distance < item.radius);
         if (distance < item.radius) {
-
           if (!item.flag) {
             item.flag = true;
+            nearby = true;
             this.notification.localNotification(
               'Notice',
               `You are nearby ${item.value}`,
             );
-            // let url =
-            //   'http://118.70.177.14:37168/api/merchant/location?lat=' +
-            //   item.latitude +
-            //   '&long=' +
-            //   item.longitude;
-            // fetch(url).then(data => {
-            //   console.log('respone call api');
-            //   console.log(data);
-            // });
+            let url =
+              'http://118.70.177.14:37168/api/merchant/location?lat=' +
+              item.latitude +
+              '&long=' +
+              item.longitude;
+            fetch(url).then(data => {
+              console.log(`You are nearby ${item.value}`);
+              console.log(data);
+            });
           }
         } else {
           item.flag = false;
@@ -95,6 +96,13 @@ export default class App extends Component {
       this.setState({
         listRegion: list,
       });
+    }
+
+    if (!nearby) {
+      this.notification.localNotification(
+        'Notice',
+        `Location updated:  ${location.latitude}, ${location.longitude}`,
+      );
     }
   };
   async configLocation() {
@@ -119,13 +127,13 @@ export default class App extends Component {
           loading: false,
         });
       },
-      err => { },
+      err => {},
     );
 
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
       saveBatteryOnBackground: true,
-      stationaryRadius: 50,
+      // stationaryRadius: 50,
       distanceFilter: 50,
       notificationTitle: 'Background tracking',
       notificationText: 'enabled',
@@ -134,7 +142,10 @@ export default class App extends Component {
       startOnBoot: true,
       stopOnTerminate: false,
       startForeground: true,
-      locationProvider: Platform.OS === 'ios' ? BackgroundGeolocation.DISTANCE_FILTER_PROVIDER : BackgroundGeolocation.ACTIVITY_PROVIDER, 
+      locationProvider:
+        Platform.OS === 'ios'
+          ? BackgroundGeolocation.DISTANCE_FILTER_PROVIDER
+          : BackgroundGeolocation.ACTIVITY_PROVIDER,
       interval: 10000,
       fastestInterval: 5000,
       activitiesInterval: 10000,
@@ -152,10 +163,10 @@ export default class App extends Component {
     });
 
     BackgroundGeolocation.on('location', location => {
-      this.notification.localNotification(
-        'Notice',
-        `Location updated:  ${location.latitude}, ${location.longitude}`,
-      );
+      // this.notification.localNotification(
+      //   'Notice',
+      //   `Location updated:  ${location.latitude}, ${location.longitude}`,
+      // );
 
       this.updateLocation(location);
       // this.notification.localNotification(
@@ -225,7 +236,7 @@ export default class App extends Component {
             res => {
               this.updateLocation(res.coords);
             },
-            err => { },
+            err => {},
           );
         }
       });
@@ -313,12 +324,12 @@ export default class App extends Component {
     ];
 
     return (
-      <View style={{ flexDirection: 'column', flex: 1 }}>
+      <View style={{flexDirection: 'column', flex: 1}}>
         <SafeAreaView />
         <StatusBar barStyle="dark-content" />
         {region.latitude && (
           <MapView
-            style={{ width: width, height: height }}
+            style={{width: width, height: height}}
             initialRegion={region}
             provider={PROVIDER_GOOGLE}
             customMapStyle={mapStyle}
@@ -347,7 +358,7 @@ export default class App extends Component {
                   }}
                   draggable>
                   <Image
-                    style={{ width: 40, height: 40 }}
+                    style={{width: 40, height: 40}}
                     resizeMode="contain"
                     source={require('./assets/location.png')}
                   />
@@ -356,11 +367,11 @@ export default class App extends Component {
                     style={styles.makerInfo}
                     onPress={this.removeMarker(item)}>
                     <Text
-                      style={{ fontSize: 14, color: 'white', marginBottom: 10 }}>
+                      style={{fontSize: 14, color: 'white', marginBottom: 10}}>
                       {item.value}
                     </Text>
                     <View style={styles.makerInfoButton}>
-                      <Text style={{ fontSize: 14, color: '#D85A4B' }}>
+                      <Text style={{fontSize: 14, color: '#D85A4B'}}>
                         Remove
                       </Text>
                     </View>
@@ -444,10 +455,10 @@ export default class App extends Component {
               </Text>
             </View>
 
-            <Text style={{ fontSize: 13, color: 'grey', marginBottom: 5 }}>
+            <Text style={{fontSize: 13, color: 'grey', marginBottom: 5}}>
               Location
             </Text>
-            <Text style={{ fontSize: 13, color: 'grey', marginBottom: 10 }}>
+            <Text style={{fontSize: 13, color: 'grey', marginBottom: 10}}>
               {loading ? 'Indentifying location....' : this.state.region.value}
             </Text>
             <View
@@ -464,27 +475,31 @@ export default class App extends Component {
               disabled={loading ? true : false}
               onPress={this.chooseRegion}
             />
-            <View style={{ flexDirection: "row", marginTop:15 }}>
+            <View style={{flexDirection: 'row', marginTop: 15}}>
               <TouchableOpacity
-                style={{ backgroundColor: "#3976ff", flex: 1 , alignItems:"center", justifyContent:'center', paddingVertical:10}}
+                style={{
+                  backgroundColor: '#3976ff',
+                  flex: 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: 10,
+                }}
                 disabled={loading ? true : false}
-                onPress={this.clearAsyncStorage}
-              >
-                <Text style={{ color: "white" }}>
-                  Clear all geofences
-              </Text>
+                onPress={this.clearAsyncStorage}>
+                <Text style={{color: 'white'}}>Clear all geofences</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={{ backgroundColor: "#FD3376", flex: 1,  alignItems:"center", justifyContent:'center', paddingVertical:10 }}
-                onPress={() => this.stopService()}
-              >
-                <Text style={{ color: "white" }}>
-                  {buttonText}
-                </Text>
+                style={{
+                  backgroundColor: '#FD3376',
+                  flex: 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: 10,
+                }}
+                onPress={() => this.stopService()}>
+                <Text style={{color: 'white'}}>{buttonText}</Text>
               </TouchableOpacity>
-
             </View>
-
           </View>
         </View>
       </View>
@@ -511,7 +526,7 @@ export default class App extends Component {
     console.log(item);
     fetch(
       `https://maps.googleapis.com/maps/api/place/details/json?placeid=${
-      item.place_id
+        item.place_id
       }&key=AIzaSyBuUbr2XwDM9nExYvtgRWNgweSFx9RiEic`,
     )
       .then(response => response.json())
@@ -630,9 +645,9 @@ export default class App extends Component {
   fetchAddress = () => {
     fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
-      this.state.region.latitude
+        this.state.region.latitude
       },${
-      this.state.region.longitude
+        this.state.region.longitude
       }&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`,
     )
       .then(response => response.json())
