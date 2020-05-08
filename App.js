@@ -59,6 +59,11 @@ export default class App extends Component {
   };
 
   updateLocation = async location => {
+    var nearby = null
+    this.notification.localNotification(
+      'Notice',
+      `Location updated ${location.latitude}, ${location.longitude}`,
+    );
     var list = [...this.state.listRegion];
     if (list.length > 0) {
       await list.forEach((item, i) => {
@@ -96,9 +101,15 @@ export default class App extends Component {
       this.setState({
         listRegion: list,
       });
+      // if(!nearby){
+      //   this.notification.localNotification(
+      //     'Notice',
+      //     `Location updated ${location.latitude}, ${location.longitude}`,
+      //   );
+      // }
     }
   };
-  
+
   async componentDidMount() {
     var listDefine = await AsyncStorage.getItem('define_region');
     if (listDefine) {
@@ -277,7 +288,7 @@ export default class App extends Component {
         <StatusBar barStyle="dark-content" />
         {region.latitude && (
           <MapView
-            style={{ width: width, height: height }}
+            style={{ width: width, height: height * 0.7 }}
             initialRegion={region}
             provider={PROVIDER_GOOGLE}
             customMapStyle={mapStyle}
@@ -577,6 +588,8 @@ export default class App extends Component {
       },
       async () => {
         var save = JSON.stringify(this.state.listRegion);
+        console.log("-----------")
+        console.log(save)
         await AsyncStorage.setItem('define_region', save);
       },
     );
