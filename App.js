@@ -9,8 +9,8 @@ console.disableYellowBox = true;
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
 import AsyncStorage from '@react-native-community/async-storage';
 import Geolocation from '@react-native-community/geolocation';
-import {getDistance} from 'geolib';
-import React, {Component} from 'react';
+import { getDistance } from 'geolib';
+import React, { Component } from 'react';
 import {
   Button,
   Dimensions,
@@ -23,10 +23,16 @@ import {
   Text,
   View,
   Alert,
+  SafeAreaView,
+  TouchableOpacity,
 } from 'react-native';
-import MapView, {Marker} from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import NotificationService from './NotificationService';
-
+import ItemSearch from './ItemSearch';
+import { checkPermisson } from './CheckPermisson';
+var _ = require('lodash');
+const width = Dimensions.get('window').width;
+const height = Dimensions.get('window').height;
 export default class App extends Component {
   constructor(props) {
     super(props);
@@ -34,10 +40,14 @@ export default class App extends Component {
       hasGeoFence: false,
       region: {},
       listRegion: [],
+      listSearch: [],
       loading: false,
-      buttonText: '',
+      buttonText: 'Stop Service',
+      showBottom: true,
+      visibleSearch: true,
     };
     this.notification = new NotificationService(this.onNotification);
+    this.onChangeTextDelayed = _.debounce(this.onChangeText, 200);
   }
 
   //Gets called when the notification comes in
@@ -46,37 +56,40 @@ export default class App extends Component {
   };
 
   updateLocation = async location => {
+    var nearby = null
+    this.notification.localNotification(
+      'Notice',
+      `Location updated ${location.latitude}, ${location.longitude}`,
+    );
     var list = [...this.state.listRegion];
     if (list.length > 0) {
-      await list.map((item, i) => {
+      await list.forEach((item, i) => {
         let distance = getDistance(
-          {latitude: item.latitude, longitude: item.longitude},
+          { latitude: item.latitude, longitude: item.longitude },
           {
             latitude: location.latitude,
             longitude: location.longitude,
           },
         );
-        console.log('distance');
-        console.log(distance);
-        console.log(item.radius);
+        console.log('distance: ' + distance + ' ' + item.radius);
+        console.log(distance < item.radius);
         if (distance < item.radius) {
           if (!item.flag) {
-            // let url = 'http://118.70.177.14:37168/api/merchant/location?lat=' +
-            //   item.latitude +
-            //   '&long=' +
-            //   item.longitude;
-            // fetch(url)
-            //   .then(data => {
-            //     console.log('respone call api');
-            //     console.log(data);
-            //   })
-            this.notification.localNotification(
-              'Thông báo',
-              `Bạn đang ở gần ${item.value}`,
-            );
             item.flag = true;
-            console.log('-----------------');
-            console.log(item);
+            nearby = true;
+            this.notification.localNotification(
+              'Notice',
+              `You are nearby ${item.value}`,
+            );
+            let url =
+              'http://118.70.177.14:37168/api/merchant/location?lat=' +
+              item.latitude +
+              '&long=' +
+              item.longitude;
+            fetch(url).then(data => {
+              console.log(`You are nearby ${item.value}`);
+              console.log(data);
+            });
           }
         } else {
           item.flag = false;
@@ -85,37 +98,26 @@ export default class App extends Component {
       this.setState({
         listRegion: list,
       });
+      // if(!nearby){
+      //   this.notification.localNotification(
+      //     'Notice',
+      //     `Location updated ${location.latitude}, ${location.longitude}`,
+      //   );
+      // }
     }
   };
-  async configLocation() {
+  async componentDidMount() {
     var listDefine = await AsyncStorage.getItem('define_region');
-    console.log(JSON.parse(listDefine));
     if (listDefine) {
       this.setState({
         listRegion: JSON.parse(listDefine),
       });
     }
-
-    Geolocation.getCurrentPosition(
-      res => {
-        var region = {
-          latitude: res.coords.latitude,
-          longitude: res.coords.longitude,
-          latitudeDelta: 0.001,
-          longitudeDelta: 0.001,
-        };
-        this.setState({
-          region: region,
-          loading: false,
-        });
-      },
-      err => {},
-    );
-
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
+      saveBatteryOnBackground: true,
       // stationaryRadius: 50,
-      distanceFilter: 100,
+      distanceFilter: 50,
       notificationTitle: 'Background tracking',
       notificationText: 'enabled',
       debug: false,
@@ -123,7 +125,10 @@ export default class App extends Component {
       startOnBoot: true,
       stopOnTerminate: false,
       startForeground: true,
-      locationProvider: BackgroundGeolocation.ACTIVITY_PROVIDER,
+      locationProvider:
+        Platform.OS === 'ios'
+          ? BackgroundGeolocation.DISTANCE_FILTER_PROVIDER
+          : BackgroundGeolocation.ACTIVITY_PROVIDER,
       interval: 10000,
       fastestInterval: 5000,
       activitiesInterval: 10000,
@@ -139,9 +144,25 @@ export default class App extends Component {
         foo: 'bar', // you can also add your own properties
       },
     });
+    var region = null
+
+    try {
+      region = await checkPermisson.getLocation()
+    } catch (error) {
+      region = error
+    }
+    this.setState({
+      region: region,
+      loading: false,
+    });
+    BackgroundGeolocation.start();
 
     BackgroundGeolocation.on('location', location => {
       this.updateLocation(location);
+      // this.notification.localNotification(
+      //   'Notice',
+      //   `You are nearby`,
+      // );
       // handle your locations here
       // to perform long running operation on iOS
       // you need to create background task
@@ -155,7 +176,7 @@ export default class App extends Component {
 
     BackgroundGeolocation.on('stationary', stationaryLocation => {
       // handle stationary locations here
-      Actions.sendLocation(stationaryLocation);
+      // Actions.sendLocation(stationaryLocation);
     });
 
     BackgroundGeolocation.on('error', error => {
@@ -198,15 +219,6 @@ export default class App extends Component {
       }
     });
 
-    BackgroundGeolocation.on('background', () => {
-      console.log('[INFO] App is in background');
-      Geolocation.getCurrentPosition(
-        res => {
-          this.updateLocation(res.coords);
-        },
-        err => {},
-      );
-    });
     if (Platform.OS == 'android') {
       BackgroundGeolocation.headlessTask(async event => {
         if (event.name === 'location' || event.name === 'stationary') {
@@ -214,7 +226,7 @@ export default class App extends Component {
             res => {
               this.updateLocation(res.coords);
             },
-            err => {},
+            err => { },
           );
         }
       });
@@ -237,68 +249,52 @@ export default class App extends Component {
       console.log('[INFO] App needs to authorize the http requests');
     });
 
-    BackgroundGeolocation.checkStatus(status => {
-      console.log(
-        '[INFO] BackgroundGeolocation service is running',
-        status.isRunning,
-      );
-      console.log(
-        '[INFO] BackgroundGeolocation services enabled',
-        status.locationServicesEnabled,
-      );
-      console.log(
-        '[INFO] BackgroundGeolocation auth status: ' + status.authorization,
-      );
-
-      if (status.isRunning) {
-        this.setState({
-          buttonText: 'Stop Service',
-        });
-      } else {
-        this.setState({
-          buttonText: 'Start Service',
-        });
-      }
-
-      // you don't need to check status before start (this is just the example)
-      // BackgroundGeolocation.start(); //triggers start on start event
-    });
   }
-  async componentDidMount() {
-    if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'OEV App',
-          message: 'OEV App access to your location ',
-        },
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        this.configLocation();
-        console.log('You can use the location');
-      } else {
-        console.log('location permission denied');
-      }
-    } else {
-      this.configLocation();
-    }
-  }
+
 
   componentWillUnmount() {
     BackgroundGeolocation.removeAllListeners();
   }
   render() {
-    const width = Dimensions.get('window').width;
-    const height = Dimensions.get('window').height;
-    const {region, loading, buttonText, listRegion} = this.state;
+    const {
+      region,
+      loading,
+      buttonText,
+      listRegion,
+      showBottom,
+      visibleSearch,
+      listSearch,
+    } = this.state;
+
+    var mapStyle = [
+      {
+        featureType: 'all',
+        elementType: 'all',
+        stylers: [
+          {
+            visibility: 'on',
+          },
+        ],
+      },
+    ];
+
     return (
-      <ScrollView style={{flexDirection: 'column', flex: 1}}>
+      <View style={{ flexDirection: 'column', flex: 1 }}>
+        <SafeAreaView />
         <StatusBar barStyle="dark-content" />
         {region.latitude && (
           <MapView
-            style={{width: width, height: height * 0.7}}
+            style={{ width: width, height: height * 0.7 }}
             initialRegion={region}
+            provider={PROVIDER_GOOGLE}
+            customMapStyle={mapStyle}
+            zoomControlEnabled={true}
+            zoomEnabled={true}
+            zoomTapEnabled={true}
+            // region={region}
             onRegionChangeComplete={this.onRegionChange}
+            moveOnMarkerPress={false}
+            onMapReady={this.onMapReady}
             showsUserLocation={true}>
             <Marker
               coordinate={{
@@ -317,63 +313,229 @@ export default class App extends Component {
                   }}
                   draggable>
                   <Image
-                    style={{width: 40, height: 40}}
+                    style={{ width: 40, height: 40 }}
                     resizeMode="contain"
                     source={require('./assets/location.png')}
                   />
+                  <Callout
+                    tooltip={true}
+                    style={styles.makerInfo}
+                    onPress={this.removeMarker(item)}>
+                    <Text
+                      style={{ fontSize: 14, color: 'white', marginBottom: 10 }}>
+                      {item.value}
+                    </Text>
+                    <View style={styles.makerInfoButton}>
+                      <Text style={{ fontSize: 14, color: '#D85A4B' }}>
+                        Remove
+                      </Text>
+                    </View>
+                  </Callout>
                 </Marker>
               ))}
           </MapView>
         )}
-
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'white',
-            paddingHorizontal: 10,
-            paddingVertical: 10,
-          }}>
-          <Text
-            style={{
-              fontWeight: 'bold',
-              fontSize: 15,
-              color: 'grey',
-              marginBottom: 15,
-            }}>
-            Move map for location
-          </Text>
-          <Text style={{fontSize: 13, color: 'grey', marginBottom: 5}}>
-            Location
-          </Text>
-          <Text style={{fontSize: 13, color: 'grey', marginBottom: 10}}>
-            {loading ? 'Indentifying location....' : this.state.region.value}
-          </Text>
+        {/* {visibleSearch ? (
           <View
             style={{
-              width: '100%',
-              height: 0.7,
-              backgroundColor: 'grey',
-              marginBottom: 10,
-            }}
-          />
+              width: width,
+              position: 'absolute',
+              top: 20,
+              alignItems: 'center',
+              flexDirection: 'column',
+            }}>
+            <View
+              style={{
+                width: width * 0.8,
+                backgroundColor: 'white',
+                borderRadius: 20,
+                elevation: 4,
+                shadowColor: '#000',
+                shadowOffset: {
+                  width: 0,
+                  height: 1,
+                },
+                shadowOpacity: 0.22,
+                shadowRadius: 2.22,
+              }}>
+              <TextInput
+                style={{
+                  paddingVertical: Platform.OS == 'android' ? 5 : 10,
+                  paddingHorizontal: 15,
+                }}
+                onChangeText={this.onChangeTextDelayed}
+                placeholder="Search"
+              />
+            </View>
+            {listSearch.length > 0 && (
+              <FlatList
+                style={{
+                  width: width * 0.8,
+                  maxHeight: 300,
+                  flex: 1,
+                  backgroundColor: 'white',
+                  marginTop: 5,
+                  borderRadius: 4,
+                  elevation: 1,
+                  shadowColor: '#000',
+                  shadowOffset: {
+                    width: 0,
+                    height: 1,
+                  },
+                  shadowOpacity: 0.22,
+                  shadowRadius: 2.22,
+                }}
+                data={listSearch}
+                renderItem={this.renderItem}
+              />
+            )}
+          </View>
+        ) : null} */}
+        <View style={styles.viewBottom}>
+          <View style={styles.contentBottom}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                flex: 1,
+              }}>
+              <Text
+                style={{
+                  fontWeight: 'bold',
+                  fontSize: 15,
+                  color: 'grey',
+                  marginBottom: 15,
+                }}>
+                Move map for location
+              </Text>
+            </View>
 
-          <Button
-            title="Pick this location"
-            color="#3976ff"
-            disabled={loading ? true : false}
-            onPress={this.chooseRegion}
-          />
-          <View style={{height: 20}} />
-
-          <Button
-            title={buttonText}
-            color={'#FD3376'}
-            onPress={() => this.stopService()}
-          />
+            <Text style={{ fontSize: 13, color: 'grey', marginBottom: 5 }}>
+              Location
+            </Text>
+            <Text style={{ fontSize: 13, color: 'grey', marginBottom: 10 }}>
+              {loading ? 'Indentifying location....' : this.state.region.value}
+            </Text>
+            <View
+              style={{
+                width: '100%',
+                height: 0.7,
+                backgroundColor: 'grey',
+                marginBottom: 10,
+              }}
+            />
+            <Button
+              title="Pick this location"
+              color="#3976ff"
+              disabled={loading ? true : false}
+              onPress={this.chooseRegion}
+            />
+            <View style={{ flexDirection: 'row', marginTop: 15 }}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#3976ff',
+                  flex: 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: 10,
+                }}
+                disabled={loading ? true : false}
+                onPress={this.clearAsyncStorage}>
+                <Text style={{ color: 'white' }}>Clear all geofences</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#FD3376',
+                  flex: 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: 10,
+                }}
+                onPress={() => this.stopService()}>
+                <Text style={{ color: 'white' }}>{buttonText}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      </ScrollView>
+      </View>
     );
   }
+  renderItem = value => {
+    return (
+      <ItemSearch item={value.item} onPress={this.choosePlace(value.item)} />
+    );
+  };
+
+  clearAsyncStorage = async () => {
+    const asyncStorageKeys = await AsyncStorage.getAllKeys();
+    if (asyncStorageKeys.length > 0) {
+      AsyncStorage.clear();
+    }
+    this.setState({
+      listRegion: [],
+    });
+  };
+
+  choosePlace = item => () => {
+    console.log('-------------choosePlace-----------');
+    console.log(item);
+    fetch(
+      `https://maps.googleapis.com/maps/api/place/details/json?placeid=${
+      item.place_id
+      }&key=AIzaSyBuUbr2XwDM9nExYvtgRWNgweSFx9RiEic`,
+    )
+      .then(response => response.json())
+      .then(responseJson => {
+        var location = {
+          latitude: responseJson.result.geometry.location.lat,
+          longitude: responseJson.result.geometry.location.lng,
+          latitudeDelta: 0.001,
+          longitudeDelta: 0.001,
+        };
+        this.setState({
+          region: location,
+          listSearch: [],
+        });
+      });
+  };
+  onChangeText = value => {
+    fetch(
+      `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${value}&key=AIzaSyBuUbr2XwDM9nExYvtgRWNgweSFx9RiEic`,
+    )
+      .then(response => response.json())
+      .then(responseJson => {
+        console.log('responseJson');
+        console.log(responseJson);
+        this.setState({
+          listSearch: responseJson.predictions,
+        });
+      });
+  };
+
+  resizeBottom = () => {
+    this.setState({
+      showBottom: !this.state.showBottom,
+    });
+  };
+  changeVisibleSearch = () => {
+    this.setState({
+      visibleSearch: !this.state.visibleSearch,
+    });
+  };
+  removeMarker = item => () => {
+    var newList = this.state.listRegion.filter(obj => obj.key !== item.key);
+    this.setState(
+      {
+        listRegion: newList,
+      },
+      () =>
+        AsyncStorage.setItem(
+          'define_region',
+          JSON.stringify(this.state.listRegion),
+        ),
+    );
+  };
+
   stopService() {
     BackgroundGeolocation.checkStatus(status => {
       console.log(
@@ -438,9 +600,9 @@ export default class App extends Component {
   fetchAddress = () => {
     fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
-        this.state.region.latitude
+      this.state.region.latitude
       },${
-        this.state.region.longitude
+      this.state.region.longitude
       }&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`,
     )
       .then(response => response.json())
@@ -450,7 +612,7 @@ export default class App extends Component {
           longitude: this.state.region.longitude,
           key: responseJson.results[0].place_id,
           value: responseJson.results[0].formatted_address,
-          radius: 100,
+          radius: 700,
           latitudeDelta: 0.001,
           longitudeDelta: 0.001,
         };
@@ -492,5 +654,37 @@ const styles = StyleSheet.create({
   },
   remind: {
     color: 'blue',
+  },
+  makerInfo: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderColor: 'red',
+    borderWidth: 1,
+    backgroundColor: '#556080',
+    // height: 100,
+    borderRadius: 50,
+    width: width * 0.9,
+  },
+  makerInfoButton: {
+    paddingVertical: 10,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    backgroundColor: 'white',
+    // position: 'absolute',
+  },
+  viewBottom: {
+    width: width,
+    position: 'absolute',
+    flexDirection: 'column',
+    bottom: 0,
+    alignItems: 'flex-end',
+  },
+  contentBottom: {
+    width: width,
+    backgroundColor: 'white',
+    paddingHorizontal: 10,
+    paddingVertical: 10,
   },
 });
