@@ -26,7 +26,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE, Callout } from 'react-native-maps';
 import NotificationService from './NotificationService';
 import ItemSearch from './ItemSearch';
 import { checkPermisson } from './CheckPermisson';
@@ -56,11 +56,12 @@ export default class App extends Component {
   };
 
   updateLocation = async location => {
-    var nearby = null
-    this.notification.localNotification(
-      'Notice',
-      `Location updated ${location.latitude}, ${location.longitude}`,
-    );
+    // var nearby = null
+    // this.notification.localNotification(
+    //   'Notice',
+    //   `Location updated ${location.latitude}, ${location.longitude}`,
+    // );
+
     var list = [...this.state.listRegion];
     if (list.length > 0) {
       await list.forEach((item, i) => {
@@ -158,6 +159,7 @@ export default class App extends Component {
     BackgroundGeolocation.start();
 
     BackgroundGeolocation.on('location', location => {
+
       this.updateLocation(location);
       // this.notification.localNotification(
       //   'Notice',
@@ -221,6 +223,7 @@ export default class App extends Component {
 
     if (Platform.OS == 'android') {
       BackgroundGeolocation.headlessTask(async event => {
+
         if (event.name === 'location' || event.name === 'stationary') {
           Geolocation.getCurrentPosition(
             res => {
@@ -612,7 +615,7 @@ export default class App extends Component {
           longitude: this.state.region.longitude,
           key: responseJson.results[0].place_id,
           value: responseJson.results[0].formatted_address,
-          radius: 700,
+          radius: 50,
           latitudeDelta: 0.001,
           longitudeDelta: 0.001,
         };
