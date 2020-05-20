@@ -54,16 +54,16 @@ export default class App extends Component {
   // The generated json object
 
   //Gets called when the notification comes in
-  onNotification = notif => {
-    Alert.alert(notif.title, notif.message);
-  };
+  // onNotification = notif => {
+  //   Alert.alert(notif.title, notif.message);
+  // };
 
   updateLocation = async location => {
     var nearby = null
-    this.notification.localNotification(
-      'Notice',
-      `Location updated ${location.latitude}, ${location.longitude}`,
-    );
+    // this.notification.localNotification(
+    //   'Notice',
+    //   `Location updated ${location.latitude}, ${location.longitude}`,
+    // );
     var list = [...this.state.listRegion];
     if (list.length > 0) {
       await list.forEach((item, i) => {
