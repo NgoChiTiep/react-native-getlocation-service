@@ -56,11 +56,14 @@ export default class App extends Component {
   };
 
   updateLocation = async location => {
-    // var nearby = null
-    // this.notification.localNotification(
-    //   'Notice',
-    //   `Location updated ${location.latitude}, ${location.longitude}`,
-    // );
+    let url =
+      'https://118.70.177.14:37168/api/merchant/location?lat=' +
+      "123" +
+      '&long=' +
+      "456";
+    fetch(url).then(data => {
+      console.log(data);
+    });
 
     var list = [...this.state.listRegion];
     if (list.length > 0) {
@@ -83,7 +86,7 @@ export default class App extends Component {
               `You are nearby ${item.value}`,
             );
             let url =
-              'http://118.70.177.14:37168/api/merchant/location?lat=' +
+              'https://118.70.177.14:37168/api/merchant/location?lat=' +
               item.latitude +
               '&long=' +
               item.longitude;
@@ -97,7 +100,7 @@ export default class App extends Component {
         }
       });
       this.setState({
-        listRegion: list,
+        listRegion: list, 
       });
       // if(!nearby){
       //   this.notification.localNotification(
@@ -122,6 +125,7 @@ export default class App extends Component {
       notificationTitle: 'Background tracking',
       notificationText: 'enabled',
       debug: false,
+
       notificationsEnabled: false,
       startOnBoot: true,
       stopOnTerminate: false,
@@ -130,11 +134,12 @@ export default class App extends Component {
         Platform.OS === 'ios'
           ? BackgroundGeolocation.DISTANCE_FILTER_PROVIDER
           : BackgroundGeolocation.ACTIVITY_PROVIDER,
+      // locationProvider: BackgroundGeolocation.DISTANCE_FILTER_PROVIDER,
       interval: 10000,
       fastestInterval: 5000,
       activitiesInterval: 10000,
       stopOnStillActivity: false,
-      url: 'http://192.168.81.15:3000/location',
+      url: 'https://192.168.81.15:3000/location',
       httpHeaders: {
         'X-FOO': 'bar',
       },
@@ -581,6 +586,47 @@ export default class App extends Component {
       latitudeDelta: this.state.region.latitudeDelta,
       longitudeDelta: this.state.region.longitudeDelta,
     };
+    if (Platform.OS == "android") {
+      Geolocation.getCurrentPosition(
+        res => {
+          let distance = getDistance(
+            { latitude: detail.latitude, longitude: detail.longitude },
+            {
+              latitude: res.coords.latitude,
+              longitude: res.coords.longitude,
+            },
+          );
+          if (distance < detail.radius) {
+            detail.flag = true
+            this.notification.localNotification(
+              'Notice',
+              `You are nearby ${detail.value}`,
+            );
+          }
+          this.setState(
+            {
+              listRegion: [...this.state.listRegion, detail],
+            },
+            async () => {
+              var save = JSON.stringify(this.state.listRegion);
+              await AsyncStorage.setItem('define_region', save);
+            },
+          );
+        },
+        err => {
+          this.setState(
+            {
+              listRegion: [...this.state.listRegion, detail],
+            },
+            async () => {
+              var save = JSON.stringify(this.state.listRegion);
+              await AsyncStorage.setItem('define_region', save);
+            },
+          );
+        },
+      );
+    }
+    else {
     this.setState(
       {
         listRegion: [...this.state.listRegion, detail],
@@ -590,6 +636,7 @@ export default class App extends Component {
         await AsyncStorage.setItem('define_region', save);
       },
     );
+    }
   };
   onRegionChange = region => {
     this.setState(
@@ -601,6 +648,7 @@ export default class App extends Component {
     );
   };
   fetchAddress = () => {
+    console.log(this.state.region)
     fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
       this.state.region.latitude
@@ -615,7 +663,7 @@ export default class App extends Component {
           longitude: this.state.region.longitude,
           key: responseJson.results[0].place_id,
           value: responseJson.results[0].formatted_address,
-          radius: 50,
+          radius: 100,
           latitudeDelta: 0.001,
           longitudeDelta: 0.001,
         };
