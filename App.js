@@ -58,10 +58,6 @@ export default class App extends Component {
 
   updateLocation = async location => {
     var nearby = null
-    // this.notification.localNotification(
-    //   'Notice',
-    //   `Location updated ${location.latitude}, ${location.longitude}`,
-    // );
     var list = [...this.state.listRegion];
     if (list.length > 0) {
       await list.forEach((item, i) => {
@@ -82,22 +78,22 @@ export default class App extends Component {
               'Notice',
               `You are nearby ${item.value}`,
             );
-            let url =
-              'http://118.70.177.14:37168/api/merchant/location?lat=' +
-              item.latitude +
-              '&long=' +
-              item.longitude;
-            fetch(url).then(data => {
-              console.log(`You are nearby ${item.value}`);
-              console.log(data);
-            });
+            // let url =
+            //   'http://118.70.177.14:37168/api/merchant/location?lat=' +
+            //   item.latitude +
+            //   '&long=' +
+            //   item.longitude;
+            // fetch(url).then(data => {
+            //   console.log(`You are nearby ${item.value}`);
+            //   console.log(data);
+            // });
           }
         } else {
           item.flag = false;
         }
       });
       this.setState({
-        listRegion: list, 
+        listRegion: list,
       });
       // if(!nearby){
       //   this.notification.localNotification(
@@ -122,7 +118,6 @@ export default class App extends Component {
       notificationTitle: 'Background tracking',
       notificationText: 'enabled',
       debug: false,
-
       notificationsEnabled: false,
       startOnBoot: true,
       stopOnTerminate: false,
@@ -570,47 +565,6 @@ export default class App extends Component {
       latitudeDelta: this.state.region.latitudeDelta,
       longitudeDelta: this.state.region.longitudeDelta,
     };
-    if (Platform.OS == "android") {
-      Geolocation.getCurrentPosition(
-        res => {
-          let distance = getDistance(
-            { latitude: detail.latitude, longitude: detail.longitude },
-            {
-              latitude: res.coords.latitude,
-              longitude: res.coords.longitude,
-            },
-          );
-          if (distance < detail.radius) {
-            detail.flag = true
-            this.notification.localNotification(
-              'Notice',
-              `You are nearby ${detail.value}`,
-            );
-          }
-          this.setState(
-            {
-              listRegion: [...this.state.listRegion, detail],
-            },
-            async () => {
-              var save = JSON.stringify(this.state.listRegion);
-              await AsyncStorage.setItem('define_region', save);
-            },
-          );
-        },
-        err => {
-          this.setState(
-            {
-              listRegion: [...this.state.listRegion, detail],
-            },
-            async () => {
-              var save = JSON.stringify(this.state.listRegion);
-              await AsyncStorage.setItem('define_region', save);
-            },
-          );
-        },
-      );
-    }
-    else {
     this.setState(
       {
         listRegion: [...this.state.listRegion, detail],
@@ -622,7 +576,6 @@ export default class App extends Component {
         await AsyncStorage.setItem('define_region', save);
       },
     );
-    }
   };
   onRegionChange = region => {
     this.setState(
