@@ -66,7 +66,6 @@ const checkAndroid = () => {
         });
 }
 async function getLocation() {
-    console.log("123123123")
     return new Promise((resolve, reject) =>
         Geolocation.getCurrentPosition(
             res => {
@@ -84,8 +83,8 @@ async function getLocation() {
                 console.log("1111111111111")
                 console.log(err)
                 var region = {
-                    latitude: 21.027763,
-                    longitude: 105.834160,
+                    latitude: 21.020372597492138,
+                    longitude: 105.79157581552863,
                     latitudeDelta: 0.001,
                     longitudeDelta: 0.001,
                 };

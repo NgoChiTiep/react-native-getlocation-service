@@ -23,12 +23,10 @@ import {
   Text,
   View,
   Alert,
-  TouchableOpacity,
-  TextInput,
-  FlatList,
   SafeAreaView,
+  TouchableOpacity,
 } from 'react-native';
-import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE, Callout } from 'react-native-maps';
 import NotificationService from './NotificationService';
 import ItemSearch from './ItemSearch';
 import { checkPermisson } from './CheckPermisson';
@@ -99,7 +97,7 @@ export default class App extends Component {
         }
       });
       this.setState({
-        listRegion: list,
+        listRegion: list, 
       });
       // if(!nearby){
       //   this.notification.localNotification(
@@ -109,7 +107,6 @@ export default class App extends Component {
       // }
     }
   };
-
   async componentDidMount() {
     var listDefine = await AsyncStorage.getItem('define_region');
     if (listDefine) {
@@ -125,19 +122,21 @@ export default class App extends Component {
       notificationTitle: 'Background tracking',
       notificationText: 'enabled',
       debug: false,
+
       notificationsEnabled: false,
       startOnBoot: true,
       stopOnTerminate: false,
       startForeground: true,
-      locationProvider:
-        Platform.OS === 'ios'
-          ? BackgroundGeolocation.DISTANCE_FILTER_PROVIDER
-          : BackgroundGeolocation.ACTIVITY_PROVIDER,
+      // locationProvider:
+      //   Platform.OS === 'ios'
+      //     ? BackgroundGeolocation.DISTANCE_FILTER_PROVIDER
+      //     : BackgroundGeolocation.ACTIVITY_PROVIDER,
+      locationProvider: BackgroundGeolocation.DISTANCE_FILTER_PROVIDER,
       interval: 10000,
       fastestInterval: 5000,
       activitiesInterval: 10000,
       stopOnStillActivity: false,
-      url: 'http://192.168.81.15:3000/location',
+      url: 'https://192.168.81.15:3000/location',
       httpHeaders: {
         'X-FOO': 'bar',
       },
@@ -162,6 +161,7 @@ export default class App extends Component {
     BackgroundGeolocation.start();
 
     BackgroundGeolocation.on('location', location => {
+
       this.updateLocation(location);
       // this.notification.localNotification(
       //   'Notice',
@@ -225,6 +225,7 @@ export default class App extends Component {
 
     if (Platform.OS == 'android') {
       BackgroundGeolocation.headlessTask(async event => {
+
         if (event.name === 'location' || event.name === 'stationary') {
           Geolocation.getCurrentPosition(
             res => {
@@ -254,6 +255,7 @@ export default class App extends Component {
     });
 
   }
+
 
   componentWillUnmount() {
     BackgroundGeolocation.removeAllListeners();
@@ -582,6 +584,47 @@ export default class App extends Component {
       latitudeDelta: this.state.region.latitudeDelta,
       longitudeDelta: this.state.region.longitudeDelta,
     };
+    if (Platform.OS == "android") {
+      Geolocation.getCurrentPosition(
+        res => {
+          let distance = getDistance(
+            { latitude: detail.latitude, longitude: detail.longitude },
+            {
+              latitude: res.coords.latitude,
+              longitude: res.coords.longitude,
+            },
+          );
+          if (distance < detail.radius) {
+            detail.flag = true
+            this.notification.localNotification(
+              'Notice',
+              `You are nearby ${detail.value}`,
+            );
+          }
+          this.setState(
+            {
+              listRegion: [...this.state.listRegion, detail],
+            },
+            async () => {
+              var save = JSON.stringify(this.state.listRegion);
+              await AsyncStorage.setItem('define_region', save);
+            },
+          );
+        },
+        err => {
+          this.setState(
+            {
+              listRegion: [...this.state.listRegion, detail],
+            },
+            async () => {
+              var save = JSON.stringify(this.state.listRegion);
+              await AsyncStorage.setItem('define_region', save);
+            },
+          );
+        },
+      );
+    }
+    else {
     this.setState(
       {
         listRegion: [...this.state.listRegion, detail],
@@ -593,6 +636,7 @@ export default class App extends Component {
         await AsyncStorage.setItem('define_region', save);
       },
     );
+    }
   };
   onRegionChange = region => {
     this.setState(
@@ -604,6 +648,7 @@ export default class App extends Component {
     );
   };
   fetchAddress = () => {
+    console.log(this.state.region)
     fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
       this.state.region.latitude
@@ -618,7 +663,7 @@ export default class App extends Component {
           longitude: this.state.region.longitude,
           key: responseJson.results[0].place_id,
           value: responseJson.results[0].formatted_address,
-          radius: 700,
+          radius: 100,
           latitudeDelta: 0.001,
           longitudeDelta: 0.001,
         };
