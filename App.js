@@ -127,25 +127,11 @@ export default class App extends Component {
       startOnBoot: true,
       stopOnTerminate: false,
       startForeground: true,
-      // locationProvider:
-      //   Platform.OS === 'ios'
-      //     ? BackgroundGeolocation.DISTANCE_FILTER_PROVIDER
-      //     : BackgroundGeolocation.ACTIVITY_PROVIDER,
       locationProvider: BackgroundGeolocation.DISTANCE_FILTER_PROVIDER,
       interval: 10000,
       fastestInterval: 5000,
       activitiesInterval: 10000,
       stopOnStillActivity: false,
-      url: 'https://192.168.81.15:3000/location',
-      httpHeaders: {
-        'X-FOO': 'bar',
-      },
-      // customize post properties
-      postTemplate: {
-        lat: '@latitude',
-        lon: '@longitude',
-        foo: 'bar', // you can also add your own properties
-      },
     });
     var region = null
 

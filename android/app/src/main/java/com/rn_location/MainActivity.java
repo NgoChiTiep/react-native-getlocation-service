@@ -16,36 +16,36 @@ public class MainActivity extends ReactActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 //    setContentView(R.layout);
-    initOPPO();
+    // initOPPO();
   }
-  private void initOPPO() {
-    try {
-      Intent i = new Intent(Intent.ACTION_MAIN);
-      i.setComponent(new ComponentName("com.oppo.safe", "com.oppo.safe.permission.floatwindow.FloatWindowListActivity"));
-      startActivity(i);
-    } catch (Exception e) {
-      e.printStackTrace();
-      try {
+  // private void initOPPO() {
+  //   try {
+  //     Intent i = new Intent(Intent.ACTION_MAIN);
+  //     i.setComponent(new ComponentName("com.oppo.safe", "com.oppo.safe.permission.floatwindow.FloatWindowListActivity"));
+  //     startActivity(i);
+  //   } catch (Exception e) {
+  //     e.printStackTrace();
+  //     try {
 
-        Intent intent = new Intent("action.coloros.safecenter.FloatWindowListActivity");
-        intent.setComponent(new ComponentName("com.coloros.safecenter", "com.coloros.safecenter.permission.floatwindow.FloatWindowListActivity"));
-        startActivity(intent);
-      } catch (Exception ee) {
+  //       Intent intent = new Intent("action.coloros.safecenter.FloatWindowListActivity");
+  //       intent.setComponent(new ComponentName("com.coloros.safecenter", "com.coloros.safecenter.permission.floatwindow.FloatWindowListActivity"));
+  //       startActivity(intent);
+  //     } catch (Exception ee) {
 
-        ee.printStackTrace();
-        try{
+  //       ee.printStackTrace();
+  //       try{
 
-          Intent i = new Intent("com.coloros.safecenter");
-          i.setComponent(new ComponentName("com.coloros.safecenter", "com.coloros.safecenter.sysfloatwindow.FloatWindowListActivity"));
-          startActivity(i);
-        }catch (Exception e1){
+  //         Intent i = new Intent("com.coloros.safecenter");
+  //         i.setComponent(new ComponentName("com.coloros.safecenter", "com.coloros.safecenter.sysfloatwindow.FloatWindowListActivity"));
+  //         startActivity(i);
+  //       }catch (Exception e1){
 
-          e1.printStackTrace();
-        }
-      }
+  //         e1.printStackTrace();
+  //       }
+  //     }
 
-    }
-  }
+  //   }
+  // }
   @Override
   protected String getMainComponentName() {
     return "rn_location";
