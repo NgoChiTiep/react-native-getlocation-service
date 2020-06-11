@@ -57,8 +57,12 @@ export default class App extends Component {
   // };
 
   updateLocation = async location => {
-    var nearby = null
-    var list = [...this.state.listRegion];
+    var listDefine = await AsyncStorage.getItem('define_region')
+    var list = JSON.parse(listDefine)
+    this.notification.localNotification(
+      'Notice',
+      `Length: ${list.length}`,
+    );
     if (list.length > 0) {
       await list.forEach((item, i) => {
         let distance = getDistance(
@@ -68,8 +72,8 @@ export default class App extends Component {
             longitude: location.longitude,
           },
         );
-        console.log('distance: ' + distance + ' ' + item.radius);
-        console.log(distance < item.radius);
+
+        item.distance = distance
         if (distance < item.radius) {
           if (!item.flag) {
             item.flag = true;
@@ -78,15 +82,6 @@ export default class App extends Component {
               'Notice',
               `You are nearby ${item.value}`,
             );
-            // let url =
-            //   'http://118.70.177.14:37168/api/merchant/location?lat=' +
-            //   item.latitude +
-            //   '&long=' +
-            //   item.longitude;
-            // fetch(url).then(data => {
-            //   console.log(`You are nearby ${item.value}`);
-            //   console.log(data);
-            // });
           }
         } else {
           item.flag = false;
@@ -95,12 +90,10 @@ export default class App extends Component {
       this.setState({
         listRegion: list,
       });
-      // if(!nearby){
-      //   this.notification.localNotification(
-      //     'Notice',
-      //     `Location updated ${location.latitude}, ${location.longitude}`,
-      //   );
-      // }
+      AsyncStorage.setItem(
+        'define_region',
+        JSON.stringify(list)
+      )
     }
   };
   async componentDidMount() {
@@ -114,7 +107,7 @@ export default class App extends Component {
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
       saveBatteryOnBackground: true,
       // stationaryRadius: 50,
-      distanceFilter: 50,
+      distanceFilter: 20,
       notificationTitle: 'Background tracking',
       notificationText: 'enabled',
       debug: false,
@@ -127,6 +120,16 @@ export default class App extends Component {
       fastestInterval: 5000,
       activitiesInterval: 10000,
       stopOnStillActivity: false,
+      url: 'https://192.168.81.15:3000/location',
+      httpHeaders: {
+        'X-FOO': 'bar',
+      },
+      // customize post properties
+      postTemplate: {
+        lat: '@latitude',
+        lon: '@longitude',
+        foo: 'bar', // you can also add your own properties
+      },
     });
     var region = null
 
@@ -560,6 +563,7 @@ export default class App extends Component {
       latitude: this.state.region.latitude,
       longitude: this.state.region.longitude,
       key: this.state.region.key,
+      flag: false,
       value: this.state.region.value,
       radius: this.state.region.radius,
       latitudeDelta: this.state.region.latitudeDelta,
