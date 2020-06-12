@@ -9,7 +9,7 @@ console.disableYellowBox = true;
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
 import AsyncStorage from '@react-native-community/async-storage';
 import Geolocation from '@react-native-community/geolocation';
-import { getDistance } from 'geolib';
+import { getDistance, isPointWithinRadius } from 'geolib';
 import React, { Component } from 'react';
 import {
   Button,
@@ -61,28 +61,33 @@ export default class App extends Component {
     var list = JSON.parse(listDefine)
     console.log(list)
     if (list && list.length > 0) {
-      this.notification.localNotification(
-        'Notice',
-        `Length: ${list.length}`,
-      );
+      // this.notification.localNotification(
+      //   'Notice',
+      //   `Length: ${list.length}`,
+      // );
       await list.forEach((item, i) => {
-        let distance = getDistance(
-          { latitude: item.latitude, longitude: item.longitude },
+        let check = isPointWithinRadius(
           {
             latitude: location.latitude,
             longitude: location.longitude,
           },
-        );
-        item.distance = distance
-        if (distance < item.radius) {
-          if (!item.flag) {
-            item.flag = true;
-            nearby = true;
-            this.notification.localNotification(
-              'Notice',
-              `You are nearby ${item.value}`,
-            );
-          }
+          { latitude: item.latitude, longitude: item.longitude },
+          item.radius
+        )
+        console.log("check")
+        console.log(check)
+        if(check) {
+          this.notification.localNotification(
+            'Notice',
+            `You are nearby ${item.value}`,
+          );
+          // if (!item.flag) {
+          //   // item.flag = true;
+          //   this.notification.localNotification(
+          //     'Notice',
+          //     `You are nearby ${item.value}`,
+          //   );
+          // }
         } else {
           item.flag = false;
         }
@@ -108,7 +113,7 @@ export default class App extends Component {
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
       saveBatteryOnBackground: true,
-      // stationaryRadius: 50,
+      stationaryRadius: 20,
       distanceFilter: 20,
       notificationTitle: 'Background tracking',
       notificationText: 'enabled',
@@ -122,6 +127,7 @@ export default class App extends Component {
       fastestInterval: 5000,
       activitiesInterval: 10000,
       stopOnStillActivity: false,
+      url: null,
       // url: 'https://192.168.81.15:3000/location',
       // httpHeaders: {
       //   'X-FOO': 'bar',
@@ -144,7 +150,7 @@ export default class App extends Component {
       region: region,
       loading: false,
     });
-    BackgroundGeolocation.start();
+
 
     BackgroundGeolocation.on('location', location => {
 
@@ -211,7 +217,6 @@ export default class App extends Component {
 
     if (Platform.OS == 'android') {
       BackgroundGeolocation.headlessTask(async event => {
-
         if (event.name === 'location' || event.name === 'stationary') {
           Geolocation.getCurrentPosition(
             res => {
@@ -239,7 +244,14 @@ export default class App extends Component {
     BackgroundGeolocation.on('http_authorization', () => {
       console.log('[INFO] App needs to authorize the http requests');
     });
+    BackgroundGeolocation.checkStatus(status => {
+      console.log('[INFO] BackgroundGeolocation service is running', status.isRunning);
+      console.log('[INFO] BackgroundGeolocation services enabled', status.locationServicesEnabled);
+      console.log('[INFO] BackgroundGeolocation auth status: ' + status.authorization);
 
+      // you don't need to check status before start (this is just the example)
+      BackgroundGeolocation.start(); //triggers start on start event
+    });
   }
 
 
