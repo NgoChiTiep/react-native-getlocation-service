@@ -59,12 +59,7 @@ export default class App extends Component {
   updateLocation = async location => {
     var listDefine = await AsyncStorage.getItem('define_region')
     var list = JSON.parse(listDefine)
-    console.log(list)
     if (list && list.length > 0) {
-      // this.notification.localNotification(
-      //   'Notice',
-      //   `Length: ${list.length}`,
-      // );
       await list.forEach((item, i) => {
         let check = isPointWithinRadius(
           {
@@ -74,20 +69,14 @@ export default class App extends Component {
           { latitude: item.latitude, longitude: item.longitude },
           item.radius
         )
-        console.log("check")
-        console.log(check)
         if(check) {
-          this.notification.localNotification(
-            'Notice',
-            `You are nearby ${item.value}`,
-          );
-          // if (!item.flag) {
-          //   // item.flag = true;
-          //   this.notification.localNotification(
-          //     'Notice',
-          //     `You are nearby ${item.value}`,
-          //   );
-          // }
+          if (!item.flag) {
+            item.flag = true;
+            this.notification.localNotification(
+              'Notice',
+              `You are nearby ${item.value}`,
+            );
+          }
         } else {
           item.flag = false;
         }
@@ -122,7 +111,7 @@ export default class App extends Component {
       startOnBoot: true,
       stopOnTerminate: false,
       startForeground: true,
-      locationProvider: BackgroundGeolocation.DISTANCE_FILTER_PROVIDER,
+      locationProvider: BackgroundGeolocation.ACTIVITY_PROVIDER,
       interval: 10000,
       fastestInterval: 5000,
       activitiesInterval: 10000,
