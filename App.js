@@ -59,11 +59,12 @@ export default class App extends Component {
   updateLocation = async location => {
     var listDefine = await AsyncStorage.getItem('define_region')
     var list = JSON.parse(listDefine)
-    this.notification.localNotification(
-      'Notice',
-      `Length: ${list.length}`,
-    );
-    if (list.length > 0) {
+    console.log(list)
+    if (list && list.length > 0) {
+      this.notification.localNotification(
+        'Notice',
+        `Length: ${list.length}`,
+      );
       await list.forEach((item, i) => {
         let distance = getDistance(
           { latitude: item.latitude, longitude: item.longitude },
@@ -72,7 +73,6 @@ export default class App extends Component {
             longitude: location.longitude,
           },
         );
-
         item.distance = distance
         if (distance < item.radius) {
           if (!item.flag) {
@@ -98,9 +98,11 @@ export default class App extends Component {
   };
   async componentDidMount() {
     var listDefine = await AsyncStorage.getItem('define_region');
+    console.log("listDefine")
+    console.log(listDefine)
     if (listDefine) {
       this.setState({
-        listRegion: JSON.parse(listDefine),
+        listRegion: listDefine ? JSON.parse(listDefine) : [],
       });
     }
     BackgroundGeolocation.configure({
@@ -120,16 +122,16 @@ export default class App extends Component {
       fastestInterval: 5000,
       activitiesInterval: 10000,
       stopOnStillActivity: false,
-      url: 'https://192.168.81.15:3000/location',
-      httpHeaders: {
-        'X-FOO': 'bar',
-      },
-      // customize post properties
-      postTemplate: {
-        lat: '@latitude',
-        lon: '@longitude',
-        foo: 'bar', // you can also add your own properties
-      },
+      // url: 'https://192.168.81.15:3000/location',
+      // httpHeaders: {
+      //   'X-FOO': 'bar',
+      // },
+      // // customize post properties
+      // postTemplate: {
+      //   lat: '@latitude',
+      //   lon: '@longitude',
+      //   foo: 'bar', // you can also add your own properties
+      // },
     });
     var region = null
 
@@ -591,7 +593,6 @@ export default class App extends Component {
     );
   };
   fetchAddress = () => {
-    console.log(this.state.region)
     fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
       this.state.region.latitude
