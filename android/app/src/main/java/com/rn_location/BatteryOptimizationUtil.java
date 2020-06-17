@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -80,7 +81,12 @@ public class BatteryOptimizationUtil {
 
                 final Intent intent = new Intent();
                 intent.setComponent(componentName);
-                context.startActivity(intent);
+                try {
+                    context.startActivity(intent);
+                }
+                catch (Exception e){
+                    Log.e("Fail xxxxx", e.toString());
+                };
             });
         }
         return temp.create();
