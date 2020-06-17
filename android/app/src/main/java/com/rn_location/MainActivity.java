@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.facebook.react.ReactActivity;
+import androidx.appcompat.app.AlertDialog;
 
 public class MainActivity extends ReactActivity {
 
@@ -14,11 +15,14 @@ public class MainActivity extends ReactActivity {
    * Returns the name of the main component registered from JavaScript. This is used to schedule
    * rendering of the component.
    */
-  // @Override
-  // protected void onCreate(Bundle savedInstanceState) {
-  //   super.onCreate(savedInstanceState);
-  //    initOPPO();
-  // }
+   @Override
+   protected void onCreate(Bundle savedInstanceState) {
+     super.onCreate(savedInstanceState);
+     final AlertDialog dialog = BatteryOptimizationUtil.getBatteryOptimizationDialog(this);
+     if(dialog != null) {
+       dialog.show();
+     }
+   }
   //  private void initOPPO() {
   //    try {
   //      Intent i = new Intent(Intent.ACTION_MAIN);

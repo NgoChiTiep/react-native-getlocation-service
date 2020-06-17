@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">rn_location</string>
+    <string name="dialog_battery_title">Location service can be unreliable</string>
+    <string name="dialog_battery_message">Your device prevents OLS access location service. Please go to Settings to disable battery optimization by whitelisting this app. If you have just rebooted or updated this app, please ignore this warning.</string>
+    <string name="dialog_battery_button_negative">Ignore</string>
+    <string name="dialog_battery_button_positive">Go to Settings</string>
+
 </resources>
