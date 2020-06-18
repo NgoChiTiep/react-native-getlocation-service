@@ -4,7 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.util.Log;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,6 +26,7 @@ import java.util.List;
  * <p>
  * Source: https://gist.github.com/moopat/e9735fa8b5cff69d003353a4feadcdbc
  * <p>
+ *
  * @author Markus Deutsch @moopat
  */
 public class BatteryOptimizationUtil {
@@ -81,12 +82,25 @@ public class BatteryOptimizationUtil {
 
                 final Intent intent = new Intent();
                 intent.setComponent(componentName);
-                try {
+
+                if (Build.MANUFACTURER.equals("OPPO")) {
+                    try {
+                        context.startActivity(new Intent().setComponent(new ComponentName("com.coloros.oppoguardelf", "com.coloros.powermanager.fuelgaue.PowerUsageModelActivity")));
+                    } catch (Exception e) {
+                        try {
+                            context.startActivity(new Intent().setComponent(new ComponentName("com.coloros.oppoguardelf", "com.coloros.powermanager.fuelgaue.PowerSaverModeActivity")));
+                        } catch (Exception e1) {
+                            try {
+                                context.startActivity(new Intent().setComponent(new ComponentName("com.coloros.oppoguardelf", "com.coloros.powermanager.fuelgaue.PowerConsumptionActivity")));
+                            } catch (Exception e2) {
+
+                            }
+                        }
+                    }
+                } else {
                     context.startActivity(intent);
                 }
-                catch (Exception e){
-                    Log.e("Fail xxxxx", e.toString());
-                };
+
             });
         }
         return temp.create();
@@ -130,11 +144,11 @@ public class BatteryOptimizationUtil {
         names.add(new ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.optimize.process.ProtectActivity"));
         names.add(new ComponentName("com.coloros.safecenter", "com.coloros.safecenter.permission.startup.StartupAppListActivity"));
         names.add(new ComponentName("com.color.safecenter", "com.color.safecenter.permission.startup.StartupAppListActivity"));
-        names.add(new ComponentName("com.oppo.safe", "com.oppo.safe.permission.startup.StartupAppListActivity"));
 
         names.add(new ComponentName("com.coloros.oppoguardelf", "com.coloros.powermanager.fuelgaue.PowerUsageModelActivity"));
         names.add(new ComponentName("com.coloros.oppoguardelf", "com.coloros.powermanager.fuelgaue.PowerSaverModeActivity"));
         names.add(new ComponentName("com.coloros.oppoguardelf", "com.coloros.powermanager.fuelgaue.PowerConsumptionActivity"));
+        names.add(new ComponentName("com.oppo.safe", "com.oppo.safe.permission.startup.StartupAppListActivity"));
         names.add(new ComponentName("com.samsung.android.sm_cn", "com.samsung.android.sm.ui.battery.BatteryActivity"));
         names.add(new ComponentName("com.samsung.android.lool", "com.samsung.android.sm.ui.battery.BatteryActivity"));
         names.add(new ComponentName("com.samsung.android.sm", "com.samsung.android.sm.ui.battery.BatteryActivity"));
