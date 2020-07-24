@@ -134,6 +134,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
     }
     splits {
         abi {
@@ -196,6 +197,8 @@ keyPassword MYAPP_RELEASE_KEY_PASSWORD
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
+        implementation 'com.android.support:multidex:1.0.3'
+
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation project(':react-native-push-notification')
 implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'

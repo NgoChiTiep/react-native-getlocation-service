@@ -57,10 +57,13 @@ export default class App extends Component {
   // };
 
   updateLocation = async location => {
-    var listDefine = await AsyncStorage.getItem('define_region')
-    var list = JSON.parse(listDefine)
-    if (list && list.length > 0) {
-      await list.forEach((item, i) => {
+    var listLocation = [...this.state.listRegion]
+    var log = await AsyncStorage.getItem('history')
+    var listLog = log ? JSON.parse(log) : []
+    console.log("listLog")
+    console.log(listLog)
+    if (listLocation.length > 0) {
+      listLocation.forEach((item, i) => {
         let check = isPointWithinRadius(
           {
             latitude: location.latitude,
@@ -69,24 +72,57 @@ export default class App extends Component {
           { latitude: item.latitude, longitude: item.longitude },
           item.radius
         )
-        if(check) {
-          if (!item.flag) {
-            item.flag = true;
+        if (check) {
+          if (item.flag == true) {
+
+            console.log('trueeeeeeeee')
+            item.flag = false
             this.notification.localNotification(
               'Notice',
               `You are nearby ${item.value}`,
             );
+
+            fetch(
+              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
+              location.latitude
+              },${
+              location.longitude
+              }&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`,
+            )
+              .then(response => response.json())
+              .then(responseJson => {
+                var date = new Date().getDate(); //Current Date
+                var month = new Date().getMonth() + 1; //Current Month
+                var year = new Date().getFullYear(); //Current Year
+                var hours = new Date().getHours(); //Current Hours
+                var min = new Date().getMinutes();
+                var time = date + '/' + month + '/' + year + ' ' + hours + ':' + min
+                var detail = {
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                  key: responseJson.results[0].place_id,
+                  value: responseJson.results[0].formatted_address,
+                  radius: 100,
+                  latitudeDelta: 0.001,
+                  longitudeDelta: 0.001,
+                  time: time
+                };
+                var newLog = [...listLog, detail]
+                console.log("newLog")
+                console.log(newLog)
+                AsyncStorage.setItem('history', JSON.stringify(newLog))
+              });
           }
-        } else {
-          item.flag = false;
+          // else console.log('falseeeeee')
         }
-      });
-      this.setState({
-        listRegion: list,
+        else {
+          item.flag = true
+        }
+
       });
       AsyncStorage.setItem(
         'define_region',
-        JSON.stringify(list)
+        JSON.stringify(listLocation)
       )
     }
   };
@@ -99,6 +135,7 @@ export default class App extends Component {
         listRegion: listDefine ? JSON.parse(listDefine) : [],
       });
     }
+
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
       saveBatteryOnBackground: true,
@@ -113,7 +150,7 @@ export default class App extends Component {
       startForeground: true,
       locationProvider: BackgroundGeolocation.ACTIVITY_PROVIDER,
       interval: 10000,
-      fastestInterval: 5000,
+      fastestInterval: 10000,
       activitiesInterval: 10000,
       stopOnStillActivity: false,
       url: null,
@@ -417,11 +454,18 @@ export default class App extends Component {
                 marginBottom: 10,
               }}
             />
+            <View style={{ marginBottom: 15 }}>
+              <Button
+                title="Pick this location"
+                color="#50a14f"
+                disabled={loading ? true : false}
+                onPress={this.chooseRegion}
+              />
+            </View>
             <Button
-              title="Pick this location"
+              title="History"
               color="#3976ff"
-              disabled={loading ? true : false}
-              onPress={this.chooseRegion}
+              onPress={this.history}
             />
             <View style={{ flexDirection: 'row', marginTop: 15 }}>
               <TouchableOpacity
@@ -453,6 +497,10 @@ export default class App extends Component {
       </View>
     );
   }
+  history = () => {
+    // this.props.navigation
+    this.props.navigation.navigate('History')
+  }
   renderItem = value => {
     return (
       <ItemSearch item={value.item} onPress={this.choosePlace(value.item)} />
@@ -460,10 +508,7 @@ export default class App extends Component {
   };
 
   clearAsyncStorage = async () => {
-    const asyncStorageKeys = await AsyncStorage.getAllKeys();
-    if (asyncStorageKeys.length > 0) {
-      AsyncStorage.clear();
-    }
+    await AsyncStorage.removeItem("define_region");
     this.setState({
       listRegion: [],
     });
@@ -566,7 +611,7 @@ export default class App extends Component {
       latitude: this.state.region.latitude,
       longitude: this.state.region.longitude,
       key: this.state.region.key,
-      flag: false,
+      flag: true,
       value: this.state.region.value,
       radius: this.state.region.radius,
       latitudeDelta: this.state.region.latitudeDelta,

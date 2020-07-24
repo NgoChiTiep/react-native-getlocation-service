@@ -13,14 +13,21 @@
     "@mauron85/react-native-background-geolocation": "^0.6.3",
     "@react-native-community/async-storage": "^1.9.0",
     "@react-native-community/geolocation": "^2.0.2",
+    "@react-native-community/masked-view": "^0.1.10",
     "@react-native-community/push-notification-ios": "^1.1.1",
+    "@react-navigation/native": "^5.7.1",
+    "@react-navigation/stack": "^5.7.1",
     "geolib": "^3.2.1",
     "lodash": "^4.17.15",
     "react": "16.11.0",
     "react-native": "0.62.2",
+    "react-native-gesture-handler": "^1.7.0",
     "react-native-maps": "^0.27.1",
     "react-native-permissions": "^2.1.4",
-    "react-native-push-notification": "^3.2.1"
+    "react-native-push-notification": "^3.2.1",
+    "react-native-reanimated": "^1.10.1",
+    "react-native-safe-area-context": "^3.1.1",
+    "react-native-screens": "^2.9.0"
   },
   "devDependencies": {
     "@babel/core": "7.9.0",
@@ -29,7 +36,7 @@
     "babel-jest": "24.9.0",
     "eslint": "6.8.0",
     "jest": "24.9.0",
-    "jetifier": "^1.6.5",
+    "jetifier": "^1.6.6",
     "metro-react-native-babel-preset": "0.58.0",
     "react-test-renderer": "16.11.0"
   },
