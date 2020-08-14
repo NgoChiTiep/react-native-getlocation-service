@@ -43,93 +43,14 @@ export default class App extends Component {
       listSearch: [],
       loading: false,
       buttonText: 'Stop Service',
-      showBottom: true,
       visibleSearch: true,
     };
     this.notification = new NotificationService(this.onNotification);
     this.onChangeTextDelayed = _.debounce(this.onChangeText, 200);
   }
-  // The generated json object
 
-  //Gets called when the notification comes in
-  // onNotification = notif => {
-  //   Alert.alert(notif.title, notif.message);
-  // };
-
-  updateLocation = async location => {
-    var listLocation = [...this.state.listRegion]
-    var log = await AsyncStorage.getItem('history')
-    var listLog = log ? JSON.parse(log) : []
-    console.log("listLog")
-    console.log(listLog)
-    if (listLocation.length > 0) {
-      listLocation.forEach((item, i) => {
-        let check = isPointWithinRadius(
-          {
-            latitude: location.latitude,
-            longitude: location.longitude,
-          },
-          { latitude: item.latitude, longitude: item.longitude },
-          item.radius
-        )
-        if (check) {
-          if (item.flag == true) {
-
-            console.log('trueeeeeeeee')
-            item.flag = false
-            this.notification.localNotification(
-              'Notice',
-              `You are nearby ${item.value}`,
-            );
-
-            fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
-              location.latitude
-              },${
-              location.longitude
-              }&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`,
-            )
-              .then(response => response.json())
-              .then(responseJson => {
-                var date = new Date().getDate(); //Current Date
-                var month = new Date().getMonth() + 1; //Current Month
-                var year = new Date().getFullYear(); //Current Year
-                var hours = new Date().getHours(); //Current Hours
-                var min = new Date().getMinutes();
-                var time = date + '/' + month + '/' + year + ' ' + hours + ':' + min
-                var detail = {
-                  latitude: location.latitude,
-                  longitude: location.longitude,
-                  key: responseJson.results[0].place_id,
-                  value: responseJson.results[0].formatted_address,
-                  radius: 100,
-                  latitudeDelta: 0.001,
-                  longitudeDelta: 0.001,
-                  time: time
-                };
-                var newLog = [...listLog, detail]
-                console.log("newLog")
-                console.log(newLog)
-                AsyncStorage.setItem('history', JSON.stringify(newLog))
-              });
-          }
-          // else console.log('falseeeeee')
-        }
-        else {
-          item.flag = true
-        }
-
-      });
-      AsyncStorage.setItem(
-        'define_region',
-        JSON.stringify(listLocation)
-      )
-    }
-  };
   async componentDidMount() {
     var listDefine = await AsyncStorage.getItem('define_region');
-    console.log("listDefine")
-    console.log(listDefine)
     if (listDefine) {
       this.setState({
         listRegion: listDefine ? JSON.parse(listDefine) : [],
@@ -154,16 +75,6 @@ export default class App extends Component {
       activitiesInterval: 10000,
       stopOnStillActivity: false,
       url: null,
-      // url: 'https://192.168.81.15:3000/location',
-      // httpHeaders: {
-      //   'X-FOO': 'bar',
-      // },
-      // // customize post properties
-      // postTemplate: {
-      //   lat: '@latitude',
-      //   lon: '@longitude',
-      //   foo: 'bar', // you can also add your own properties
-      // },
     });
     var region = null
 
@@ -181,10 +92,6 @@ export default class App extends Component {
     BackgroundGeolocation.on('location', location => {
 
       this.updateLocation(location);
-      // this.notification.localNotification(
-      //   'Notice',
-      //   `You are nearby`,
-      // );
       // handle your locations here
       // to perform long running operation on iOS
       // you need to create background task
@@ -280,10 +187,70 @@ export default class App extends Component {
     });
   }
 
+  updateLocation = async location => {
+    var listLocation = [...this.state.listRegion]
+    var log = await AsyncStorage.getItem('history')
+    var listLog = log ? JSON.parse(log) : []
+    if (listLocation.length > 0) {
+      listLocation.forEach((item, i) => {
+        let check = isPointWithinRadius(
+          {
+            latitude: location.latitude,
+            longitude: location.longitude,
+          },
+          { latitude: item.latitude, longitude: item.longitude },
+          item.radius
+        )
+        if (check) {
+          if (item.flag == true) {
+            item.flag = false
+            this.notification.localNotification(
+              'Notice',
+              `You are nearby ${item.value}`,
+            );
 
-  componentWillUnmount() {
-    BackgroundGeolocation.removeAllListeners();
-  }
+            fetch(
+              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
+              item.latitude
+              },${
+              item.longitude
+              }&key=AIzaSyACQH75po6ZJc1-u2BzbneQ76tZnD2BMps`,
+            )
+              .then(response => response.json())
+              .then(responseJson => {
+                var date = new Date().getDate(); //Current Date
+                var month = new Date().getMonth() + 1; //Current Month
+                var year = new Date().getFullYear(); //Current Year
+                var hours = new Date().getHours(); //Current Hours
+                var min = new Date().getMinutes();
+                var time = date + '/' + month + '/' + year + ' ' + hours + ':' + min
+                var detail = {
+                  latitude: item.latitude,
+                  longitude: item.longitude,
+                  key: responseJson.results[0].place_id,
+                  value: responseJson.results[0].formatted_address,
+                  radius: 100,
+                  latitudeDelta: 0.001,
+                  longitudeDelta: 0.001,
+                  time: time
+                };
+                var newLog = [...listLog, detail]
+                AsyncStorage.setItem('history', JSON.stringify(newLog))
+              });
+          }
+          // else console.log('falseeeeee')
+        }
+        else {
+          item.flag = true
+        }
+
+      });
+      AsyncStorage.setItem(
+        'define_region',
+        JSON.stringify(listLocation)
+      )
+    }
+  };
 
   render() {
     const {
@@ -291,7 +258,6 @@ export default class App extends Component {
       loading,
       buttonText,
       listRegion,
-      showBottom,
       visibleSearch,
       listSearch,
     } = this.state;
@@ -321,7 +287,6 @@ export default class App extends Component {
             zoomControlEnabled={true}
             zoomEnabled={true}
             zoomTapEnabled={true}
-            // region={region}
             onRegionChangeComplete={this.onRegionChange}
             moveOnMarkerPress={false}
             onMapReady={this.onMapReady}
@@ -498,14 +463,13 @@ export default class App extends Component {
     );
   }
   history = () => {
-    // this.props.navigation
     this.props.navigation.navigate('History')
   }
-  renderItem = value => {
-    return (
-      <ItemSearch item={value.item} onPress={this.choosePlace(value.item)} />
-    );
-  };
+  // renderItem = value => {
+  //   return (
+  //     <ItemSearch item={value.item} onPress={this.choosePlace(value.item)} />
+  //   );
+  // };
 
   clearAsyncStorage = async () => {
     await AsyncStorage.removeItem("define_region");
@@ -514,28 +478,29 @@ export default class App extends Component {
     });
   };
 
-  choosePlace = item => () => {
-    console.log('-------------choosePlace-----------');
-    console.log(item);
-    fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?placeid=${
-      item.place_id
-      }&key=AIzaSyBuUbr2XwDM9nExYvtgRWNgweSFx9RiEic`,
-    )
-      .then(response => response.json())
-      .then(responseJson => {
-        var location = {
-          latitude: responseJson.result.geometry.location.lat,
-          longitude: responseJson.result.geometry.location.lng,
-          latitudeDelta: 0.001,
-          longitudeDelta: 0.001,
-        };
-        this.setState({
-          region: location,
-          listSearch: [],
-        });
-      });
-  };
+  // chọn location trong danh sách tìm kiếm
+  // choosePlace = item => () => {
+  //   fetch(
+  //     `https://maps.googleapis.com/maps/api/place/details/json?placeid=${
+  //     item.place_id
+  //     }&key=AIzaSyBuUbr2XwDM9nExYvtgRWNgweSFx9RiEic`,
+  //   )
+  //     .then(response => response.json())
+  //     .then(responseJson => {
+  //       var location = {
+  //         latitude: responseJson.result.geometry.location.lat,
+  //         longitude: responseJson.result.geometry.location.lng,
+  //         latitudeDelta: 0.001,
+  //         longitudeDelta: 0.001,
+  //       };
+  //       this.setState({
+  //         region: location,
+  //         listSearch: [],
+  //       });
+  //     });
+  // };
+
+  // nhập location tìm kiếm
   onChangeText = value => {
     fetch(
       `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${value}&key=AIzaSyBuUbr2XwDM9nExYvtgRWNgweSFx9RiEic`,
@@ -550,16 +515,7 @@ export default class App extends Component {
       });
   };
 
-  resizeBottom = () => {
-    this.setState({
-      showBottom: !this.state.showBottom,
-    });
-  };
-  changeVisibleSearch = () => {
-    this.setState({
-      visibleSearch: !this.state.visibleSearch,
-    });
-  };
+  
   removeMarker = item => () => {
     var newList = this.state.listRegion.filter(obj => obj.key !== item.key);
     this.setState(
@@ -574,6 +530,7 @@ export default class App extends Component {
     );
   };
 
+  // ngắt background service
   stopService() {
     BackgroundGeolocation.checkStatus(status => {
       console.log(
@@ -606,6 +563,8 @@ export default class App extends Component {
       loading: true,
     });
   };
+
+  // lưu vị trí vào localStorage
   chooseRegion = () => {
     var detail = {
       latitude: this.state.region.latitude,
@@ -623,12 +582,12 @@ export default class App extends Component {
       },
       async () => {
         var save = JSON.stringify(this.state.listRegion);
-        console.log("-----------")
-        console.log(save)
         await AsyncStorage.setItem('define_region', save);
       },
     );
   };
+
+  // lấy vị trí theo tâm bản đồ
   onRegionChange = region => {
     this.setState(
       {
@@ -638,6 +597,8 @@ export default class App extends Component {
       () => this.fetchAddress(),
     );
   };
+
+  // lấy thông tin vị trí theo lat long
   fetchAddress = () => {
     fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
@@ -663,6 +624,10 @@ export default class App extends Component {
         });
       });
   };
+  componentWillUnmount() {
+    BackgroundGeolocation.removeAllListeners();
+  }
+
 }
 
 const styles = StyleSheet.create({

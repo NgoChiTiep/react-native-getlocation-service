@@ -1,16 +1,21 @@
 import React, { Component } from 'react'
-import { Text, View, Button } from 'react-native'
+import { Text, View, Button, ToastAndroid } from 'react-native'
 import AsyncStorage from '@react-native-community/async-storage';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
+import Clipboard from '@react-native-community/clipboard'
 
-const Item = ({ item, index, lenght }) => (
+const Item = ({ item, index, copy }) => (
     <View style={{ paddingVertical: 20, paddingHorizontal: 20, backgroundColor: index % 2 == 0 ? "white" : "#ececec" }}>
-        <Text style={{ fontStyle: "italic", marginBottom: 15 }}>{item.value}</Text>
+        <Text style={{ fontStyle: "italic", marginBottom: 5 }}>{item.value}</Text>
 
-        <Text >latitude: <Text style={{ fontWeight: "bold" }}>{item.latitude}</Text></Text>
-        <Text style={{ marginVertical: 5 }}>longitude: <Text style={{ fontWeight: "bold" }}>{item.longitude}</Text></Text>
-        <Text >Time: <Text style={{ fontWeight: "bold" }}>{item.time}</Text></Text>
+        <TouchableOpacity onPress={copy(item.latitude)} style={{ paddingVertical: 5 }}>
+            <Text selectable={true}>latitude: <Text style={{ fontWeight: "bold" }} selectable>{item.latitude}</Text></Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={copy(item.longitude)} style={{ paddingVertical: 5 }}>
+            <Text >longitude: <Text style={{ fontWeight: "bold" }}>{item.longitude}</Text></Text>
+        </TouchableOpacity>
 
+        <Text style={{ marginTop: 5 }}>Time: <Text style={{ fontWeight: "bold" }}>{item.time}</Text></Text>
 
     </View>
 );
@@ -19,7 +24,8 @@ export default class History extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            history: []
+            history: [],
+            copiedText: ""
         };
         this.props.navigation.setOptions({
             headerRight: () => (
@@ -31,6 +37,11 @@ export default class History extends Component {
                 </TouchableOpacity>
             ),
         })
+    }
+
+    copyToClipboard = (value) => () => {
+        Clipboard.setString(value.toString())
+        ToastAndroid.show('Copied to clipboard!', ToastAndroid.SHORT)
     }
     componentDidMount() {
         this.getData()
@@ -44,14 +55,17 @@ export default class History extends Component {
     }
     async getData() {
         var list = await AsyncStorage.getItem('history');
-        console.log("2222222")
-        console.log(list)
         this.setState({
             history: list ? JSON.parse(list) : [],
         }, () => console.log(this.state.history));
 
     }
-    renderItem = ({ item, index }) => <Item item={item} index={index} lenght={this.state.history.length} />
+    renderItem = ({ item, index }) =>
+        <Item
+            item={item}
+            index={index}
+            copy={this.copyToClipboard}
+        />
     render() {
         const { history } = this.state
         return (
